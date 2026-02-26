@@ -14,6 +14,7 @@ function parseRestKline(k: string[]): Candle {
     high: parseFloat(k[2]),
     low: parseFloat(k[3]),
     close: parseFloat(k[4]),
+    volume: parseFloat(k[5]),
   };
 }
 
@@ -28,20 +29,14 @@ export function useKlines(coin: Coin, timeframe: Timeframe) {
 
     const symbol = SYMBOLS[coin].toUpperCase();
 
-    // Fetch historical candles
     fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&limit=200`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&limit=500`
     )
       .then(res => res.json())
-      .then((data: string[][]) => {
-        setCandles(data.map(parseRestKline));
-      })
+      .then((data: string[][]) => setCandles(data.map(parseRestKline)))
       .catch(err => console.error('Klines fetch failed:', err));
 
-    // Close existing WebSocket
-    if (wsRef.current) {
-      wsRef.current.close();
-    }
+    if (wsRef.current) wsRef.current.close();
 
     const ws = new WebSocket(
       `wss://stream.binance.com:9443/ws/${SYMBOLS[coin]}@kline_${timeframe}`
@@ -56,12 +51,12 @@ export function useKlines(coin: Coin, timeframe: Timeframe) {
         high: parseFloat(k.h),
         low: parseFloat(k.l),
         close: parseFloat(k.c),
+        volume: parseFloat(k.v),
       };
 
       setLiveCandle(candle);
 
       if (k.x) {
-        // Candle closed — merge into historical
         setCandles(prev => {
           const idx = prev.findIndex(c => c.time === candle.time);
           if (idx >= 0) {
@@ -75,10 +70,7 @@ export function useKlines(coin: Coin, timeframe: Timeframe) {
     };
 
     wsRef.current = ws;
-
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, [coin, timeframe]);
 
   return { candles, liveCandle };

@@ -36,7 +36,7 @@ export function useNews() {
 
   useEffect(() => {
     fetchNews();
-    const id = setInterval(fetchNews, 60_000);
+    const id = setInterval(fetchNews, 20_000);
     return () => clearInterval(id);
   }, []);
 
