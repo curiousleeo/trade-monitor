@@ -70,7 +70,7 @@ export default function App() {
             <>
               <span className="price" style={{ color: COIN_COLORS[coin] }}>
                 ${price.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
+                  minimumFractionDigits: coin === 'BTC' ? 0 : 2,
                   maximumFractionDigits: coin === 'BTC' ? 0 : 2,
                 })}
               </span>
