@@ -31,8 +31,9 @@ export default function App() {
   const [showEMA20, setShowEMA20]   = useState(true);
   const [showEMA50, setShowEMA50]   = useState(true);
   const [showEMA200, setShowEMA200] = useState(false);
-  const [showRSI, setShowRSI]       = useState(false);
-  const [priceFlash, setPriceFlash] = useState(false);
+  const [showRSI, setShowRSI]               = useState(false);
+  const [showNewsMarkers, setShowNewsMarkers] = useState(true);
+  const [priceFlash, setPriceFlash]         = useState(false);
 
   const [scrollToTime, setScrollToTime]           = useState<number | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
@@ -111,6 +112,7 @@ export default function App() {
             <button className={`sel-btn ema50-btn ${showEMA50 ? 'ema50-on' : ''}`} onClick={() => setShowEMA50(v => !v)}>50</button>
             <button className={`sel-btn ema200-btn ${showEMA200 ? 'ema200-on' : ''}`} onClick={() => setShowEMA200(v => !v)}>200</button>
             <button className={`sel-btn rsi-btn ${showRSI ? 'rsi-on' : ''}`} onClick={() => setShowRSI(v => !v)}>RSI</button>
+            <button className={`sel-btn news-dot-btn ${showNewsMarkers ? 'news-dot-on' : ''}`} onClick={() => setShowNewsMarkers(v => !v)} title="Toggle news dots on chart">●NEWS</button>
           </div>
         </div>
 
@@ -188,6 +190,7 @@ export default function App() {
             showEMA50={showEMA50}
             showEMA200={showEMA200}
             showRSI={showRSI}
+            showNewsMarkers={showNewsMarkers}
             prevDay={prevDay}
             scrollToTime={scrollToTime}
             onCandleClick={handleCandleClick}

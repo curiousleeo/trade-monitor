@@ -25,6 +25,7 @@ interface ChartProps {
   showEMA50: boolean;
   showEMA200: boolean;
   showRSI: boolean;
+  showNewsMarkers: boolean;
   prevDay: PrevDay | null;
   scrollToTime: number | null;
   onCandleClick: (time: number) => void;
@@ -53,7 +54,7 @@ const BASE_CHART_OPTS = {
 
 export function Chart({
   candles, liveCandle, news, timeframe, coin,
-  showEMA20, showEMA50, showEMA200, showRSI,
+  showEMA20, showEMA50, showEMA200, showRSI, showNewsMarkers,
   prevDay, scrollToTime, onCandleClick,
 }: ChartProps) {
   const mainRef = useRef<HTMLDivElement>(null);
@@ -152,6 +153,16 @@ export function Chart({
     rsiChartRef.current  = rsiChart;
     rsiSeriesRef.current = rsiSeries;
 
+    // Seed RSI data immediately with current candles (candles effect won't re-run on mount)
+    if (candles.length > 0) {
+      const closes = candles.map(c => c.close);
+      const pts: { time: UTCTimestamp; value: number }[] = [];
+      calcRSI(closes).forEach((v, i) => {
+        if (v !== null) pts.push({ time: candles[i].time as UTCTimestamp, value: v });
+      });
+      rsiSeries.setData(pts);
+    }
+
     // Sync main → RSI
     if (chartRef.current) {
       chartRef.current.timeScale().subscribeVisibleTimeRangeChange(range => {
@@ -249,6 +260,10 @@ export function Chart({
   // ── News markers ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!candleSeriesRef.current || candles.length === 0) return;
+    if (!showNewsMarkers) {
+      candleSeriesRef.current.setMarkers([]);
+      return;
+    }
     const tfSec = TF_SECONDS[timeframe];
     const firstT = candles[0].time, lastT = candles[candles.length - 1].time;
     const grouped = new Map<number, number>();
@@ -260,7 +275,7 @@ export function Chart({
       .map(([time, count]) => ({ time: time as UTCTimestamp, position: 'aboveBar' as const, color: '#f59e0b', shape: 'circle' as const, text: count > 1 ? `${count}` : '', size: 1 }))
       .sort((a, b) => a.time - b.time);
     candleSeriesRef.current.setMarkers(markers);
-  }, [news, candles, timeframe]);
+  }, [news, candles, timeframe, showNewsMarkers]);
 
   // ── Scroll chart to news time ─────────────────────────────────────────
   useEffect(() => {

@@ -61,7 +61,8 @@ body { font-family: var(--font); font-size: 12px; color: var(--text); -webkit-fo
 .ema20-on  { color: var(--blue)   !important; border-color: var(--blue)   !important; background: #1a1a2e !important; }
 .ema50-on  { color: var(--amber)  !important; border-color: var(--amber)  !important; background: #1a1a0a !important; }
 .ema200-on { color: #ec4899       !important; border-color: #ec4899       !important; background: #1a0a1a !important; }
-.rsi-on    { color: var(--purple) !important; border-color: var(--purple) !important; background: #120a1a !important; }
+.rsi-on      { color: var(--purple) !important; border-color: var(--purple) !important; background: #120a1a !important; }
+.news-dot-on { color: var(--amber)  !important; border-color: var(--amber)  !important; background: #1a1500 !important; }
 
 /* ── Price ── */
 .price-area { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
