@@ -59,8 +59,8 @@ export function Chart({ candles, liveCandle, news, timeframe, coin }: ChartProps
         timeVisible: true,
         secondsVisible: false,
       },
-      width: containerRef.current.clientWidth,
-      height: containerRef.current.clientHeight,
+      width: containerRef.current.clientWidth || window.innerWidth,
+      height: containerRef.current.clientHeight || window.innerHeight - 48,
     });
 
     const series = chart.addCandlestickSeries({
