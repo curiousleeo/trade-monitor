@@ -34,6 +34,14 @@ export interface FearGreed {
   label: string;
 }
 
+export interface TickerData {
+  price: number;
+  change24h: number;   // percentage e.g. 2.41
+  volume24h: number;   // in USD
+  high24h: number;
+  low24h: number;
+}
+
 export type Sentiment = 'bullish' | 'bearish' | 'neutral';
 export type Coin = 'BTC' | 'ETH' | 'SOL';
 export type Timeframe = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
