@@ -419,12 +419,15 @@ export function Chart({
   }, [scrollToTime, timeframe]);
 
   // ── Candle countdown timer ────────────────────────────────────────────
+  const liveTimeRef = useRef<number | null>(null);
+  liveTimeRef.current = liveCandle?.time ?? null;
+
   useEffect(() => {
+    const tfSec = TF_SECONDS[timeframe];
     function update() {
-      if (!liveCandle) { setCountdown(null); return; }
-      const tfSec = TF_SECONDS[timeframe];
-      const closeAt = liveCandle.time + tfSec;
-      const remaining = Math.max(0, closeAt - Math.floor(Date.now() / 1000));
+      const openTime = liveTimeRef.current;
+      if (openTime === null) { setCountdown(null); return; }
+      const remaining = Math.max(0, openTime + tfSec - Math.floor(Date.now() / 1000));
       const h = Math.floor(remaining / 3600);
       const m = Math.floor((remaining % 3600) / 60);
       const s = remaining % 60;
@@ -437,7 +440,7 @@ export function Chart({
     update();
     const t = setInterval(update, 1000);
     return () => clearInterval(t);
-  }, [liveCandle, timeframe]);
+  }, [liveCandle?.time, timeframe]);
 
   // ── Derive display data (hover or last candle) ────────────────────────
   const last = candles.length > 0 ? candles[candles.length - 1] : null;
@@ -469,19 +472,29 @@ export function Chart({
               {chgPct >= 0 ? '+' : ''}{chgPct.toFixed(2)}%
             </span>
             <span style={labelStyle}>V</span>
-            <span style={{ ...valStyle, marginRight: countdown ? 12 : 0 }}>{fmtVol(display.v)}</span>
-            {countdown && (
-              <>
-                <span style={{ ...labelStyle, marginRight: 3 }}>⏱</span>
-                <span style={{ fontSize: 11, color: '#6b7280', fontFamily: 'monospace' }}>{countdown}</span>
-              </>
-            )}
+            <span style={{ ...valStyle, marginRight: 0 }}>{fmtVol(display.v)}</span>
           </div>
         )}
 
         {candles.length === 0 && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', fontSize: '12px', letterSpacing: '0.1em', fontFamily: 'monospace', pointerEvents: 'none' }}>
             LOADING {coin}...
+          </div>
+        )}
+
+        {/* Candle countdown — time-axis style badge */}
+        {countdown && (
+          <div style={{
+            position: 'absolute', bottom: 28, right: 66,
+            background: isUp ? '#22c55e' : '#ef4444',
+            color: '#fff',
+            fontSize: 11, fontFamily: "'SF Mono','Fira Code',monospace",
+            fontWeight: 600, letterSpacing: '0.04em',
+            padding: '2px 6px', borderRadius: 3,
+            pointerEvents: 'none', userSelect: 'none',
+            zIndex: 5,
+          }}>
+            {countdown}
           </div>
         )}
       </div>
