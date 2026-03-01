@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chart }           from './components/Chart';
 import { NewsFeed }        from './components/NewsFeed';
 import { PriceAlertPanel } from './components/PriceAlertPanel';
@@ -19,6 +19,15 @@ import { Coin, Timeframe } from './types';
 
 const COINS: Coin[] = ['BTC', 'ETH', 'SOL'];
 
+function useClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return now;
+}
+
 export default function App() {
   const [coin, setCoin]                     = useState<Coin>('BTC');
   const [timeframe, setTimeframe]           = useState<Timeframe>('15m');
@@ -32,6 +41,8 @@ export default function App() {
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab]         = useState<'news' | 'ai'>('news');
 
+  const now = useClock();
+
   // ── Data hooks ─────────────────────────────────────────────────────────
   const { candles, liveCandle } = useKlines(coin, timeframe);
   const tickers     = use24hTicker();
@@ -39,7 +50,6 @@ export default function App() {
   const fearGreed   = useFearGreed();
   const fundingRate = useFundingRate(coin);
 
-  // Funding rates for all 3 coins (AI trader needs them per-coin)
   const fundingBTC = useFundingRate('BTC');
   const fundingETH = useFundingRate('ETH');
   const fundingSOL = useFundingRate('SOL');
@@ -49,7 +59,6 @@ export default function App() {
   const { alerts, addAlert, removeAlert, triggered, clearTriggered } =
     usePriceAlerts(tickers[coin]?.price ?? null, coin);
 
-  // REST candles snapshot for all 3 coins (AI uses for non-active coins)
   const allCandles = useAllCandles(timeframe);
 
   // ── AI Trader ──────────────────────────────────────────────────────────
@@ -65,7 +74,6 @@ export default function App() {
     prevDay,
   });
 
-  // Flash coin card when alert triggers
   useEffect(() => {
     if (triggered) {
       setPriceFlash(true);
@@ -74,7 +82,6 @@ export default function App() {
     }
   }, [triggered, clearTriggered]);
 
-  // Chart click → highlight nearest news item
   const handleCandleClick = useCallback((time: number) => {
     if (news.length === 0) return;
     const closest = news.reduce((prev, cur) =>
@@ -83,12 +90,15 @@ export default function App() {
     setHighlightedNewsId(closest.id);
   }, [news]);
 
-  // News click → scroll chart to that candle
   const handleNewsClick = useCallback((publishedAt: number, id: string) => {
     setScrollToTime(publishedAt);
     setHighlightedNewsId(id);
     setTimeout(() => setScrollToTime(null), 500);
   }, []);
+
+  // Clock formatting
+  const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase();
 
   return (
     <div className="app">
@@ -96,9 +106,9 @@ export default function App() {
       {/* ── Header ── */}
       <header className="header">
         <div className="brand">
-          <span className="brand-hex">⬡</span>
-          <span className="brand-text">Trade Monitor</span>
-          <span className="brand-apex">· APEX AI</span>
+          <span className="brand-hex">◈</span>
+          <span className="brand-text">APEX</span>
+          <span className="brand-apex">AI TERMINAL</span>
         </div>
 
         <div className="coin-cards">
@@ -113,6 +123,17 @@ export default function App() {
             />
           ))}
         </div>
+
+        <div className="header-right">
+          <div className="header-clock">
+            <span className="header-clock-time">{timeStr}</span>
+            <span className="header-clock-date">{dateStr}</span>
+          </div>
+          <div className="header-status">
+            <div className="header-status-dot" />
+            <span className="header-status-label">LIVE</span>
+          </div>
+        </div>
       </header>
 
       {/* ── Stats strip ── */}
@@ -126,19 +147,18 @@ export default function App() {
       <main className="main">
         <aside className="sidebar">
 
-          {/* Sidebar tab bar */}
           <div className="sidebar-tabs">
             <button
               className={`sidebar-tab ${sidebarTab === 'news' ? 'active' : ''}`}
               onClick={() => setSidebarTab('news')}
             >
-              📰 NEWS
+              F1  NEWS
             </button>
             <button
               className={`sidebar-tab ${sidebarTab === 'ai' ? 'active' : ''}`}
               onClick={() => setSidebarTab('ai')}
             >
-              ⚡ APEX
+              F2  APEX
             </button>
           </div>
 
@@ -200,6 +220,28 @@ export default function App() {
           </div>
         </section>
       </main>
+
+      {/* ── Bloomberg Function Key Bar ── */}
+      <div className="fnkey-bar">
+        {[
+          ['F1', 'NEWS'],
+          ['F2', 'APEX AI'],
+          ['F3', 'CHART'],
+          ['F4', 'ALERTS'],
+          ['F5', 'SIGNALS'],
+          ['F6', 'TRADES'],
+          ['F8', 'RESET'],
+        ].map(([num, label]) => (
+          <div key={num} className="fnkey">
+            <span className="fnkey-num">{num}</span>
+            <span className="fnkey-label">{label}</span>
+          </div>
+        ))}
+        <div className="fnkey-bar-right">
+          <span className="fnkey-bar-status">BINANCE · SPOT</span>
+          <span className="fnkey-bar-status">USD</span>
+        </div>
+      </div>
 
     </div>
   );
