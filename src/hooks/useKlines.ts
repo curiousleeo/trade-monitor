@@ -21,11 +21,16 @@ function parseRestKline(k: string[]): Candle {
 export function useKlines(coin: Coin, timeframe: Timeframe) {
   const [candles, setCandles] = useState<Candle[]>([]);
   const [liveCandle, setLiveCandle] = useState<Candle | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
+  const wsRef            = useRef<WebSocket | null>(null);
+  const reconnectTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectDelay   = useRef(1000);
+  const destroyed        = useRef(false);
 
   useEffect(() => {
     setCandles([]);
     setLiveCandle(null);
+    destroyed.current     = false;
+    reconnectDelay.current = 1000;
 
     const symbol = SYMBOLS[coin].toUpperCase();
 
@@ -36,41 +41,61 @@ export function useKlines(coin: Coin, timeframe: Timeframe) {
       .then((data: string[][]) => setCandles(data.map(parseRestKline)))
       .catch(err => console.error('Klines fetch failed:', err));
 
-    if (wsRef.current) wsRef.current.close();
+    function connect() {
+      if (destroyed.current) return;
+      if (wsRef.current) wsRef.current.close();
 
-    const ws = new WebSocket(
-      `wss://stream.binance.com:9443/ws/${SYMBOLS[coin]}@kline_${timeframe}`
-    );
+      const ws = new WebSocket(
+        `wss://stream.binance.com:9443/ws/${SYMBOLS[coin]}@kline_${timeframe}`
+      );
 
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      const k = msg.k;
-      const candle: Candle = {
-        time: Math.floor(k.t / 1000),
-        open: parseFloat(k.o),
-        high: parseFloat(k.h),
-        low: parseFloat(k.l),
-        close: parseFloat(k.c),
-        volume: parseFloat(k.v),
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        const k = msg.k;
+        const candle: Candle = {
+          time:   Math.floor(k.t / 1000),
+          open:   parseFloat(k.o),
+          high:   parseFloat(k.h),
+          low:    parseFloat(k.l),
+          close:  parseFloat(k.c),
+          volume: parseFloat(k.v),
+        };
+
+        setLiveCandle(candle);
+
+        if (k.x) {
+          setCandles(prev => {
+            const idx = prev.findIndex(c => c.time === candle.time);
+            if (idx >= 0) {
+              const updated = [...prev];
+              updated[idx] = candle;
+              return updated;
+            }
+            return [...prev, candle];
+          });
+        }
       };
 
-      setLiveCandle(candle);
+      ws.onerror = () => console.error(`[useKlines] WS error (${coin} ${timeframe})`);
 
-      if (k.x) {
-        setCandles(prev => {
-          const idx = prev.findIndex(c => c.time === candle.time);
-          if (idx >= 0) {
-            const updated = [...prev];
-            updated[idx] = candle;
-            return updated;
-          }
-          return [...prev, candle];
-        });
-      }
+      ws.onclose = () => {
+        if (destroyed.current) return;
+        const delay = reconnectDelay.current;
+        reconnectDelay.current = Math.min(30_000, delay * 2);
+        console.warn(`[useKlines] WS closed — reconnecting in ${delay}ms (${coin} ${timeframe})`);
+        reconnectTimer.current = setTimeout(connect, delay);
+      };
+
+      wsRef.current = ws;
+    }
+
+    connect();
+
+    return () => {
+      destroyed.current = true;
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+      if (wsRef.current) wsRef.current.close();
     };
-
-    wsRef.current = ws;
-    return () => ws.close();
   }, [coin, timeframe]);
 
   return { candles, liveCandle };

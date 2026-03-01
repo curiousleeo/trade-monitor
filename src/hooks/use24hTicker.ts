@@ -13,35 +13,63 @@ const STREAM_TO_COIN: Record<string, Coin> = {
 
 export function use24hTicker(): Tickers {
   const [tickers, setTickers] = useState<Tickers>({ BTC: null, ETH: null, SOL: null });
-  const wsRef = useRef<WebSocket | null>(null);
+  const wsRef           = useRef<WebSocket | null>(null);
+  const reconnectTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectDelay  = useRef(1000);
+  const destroyed       = useRef(false);
 
   useEffect(() => {
-    const ws = new WebSocket(STREAM);
+    destroyed.current      = false;
+    reconnectDelay.current = 1000;
 
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      const data = msg.data;
-      if (!data || !data.s) return;
+    function connect() {
+      if (destroyed.current) return;
+      if (wsRef.current) wsRef.current.close();
 
-      const coin = STREAM_TO_COIN[data.s.toLowerCase()];
-      if (!coin) return;
+      const ws = new WebSocket(STREAM);
 
-      const close = parseFloat(data.c);
-      const open  = parseFloat(data.o);
-      setTickers(prev => ({
-        ...prev,
-        [coin]: {
-          price:     close,
-          change24h: open > 0 ? ((close - open) / open) * 100 : 0,
-          volume24h: parseFloat(data.q), // quote volume in USDT
-          high24h:   parseFloat(data.h),
-          low24h:    parseFloat(data.l),
-        },
-      }));
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        const data = msg.data;
+        if (!data || !data.s) return;
+
+        const coin = STREAM_TO_COIN[data.s.toLowerCase()];
+        if (!coin) return;
+
+        const close = parseFloat(data.c);
+        const open  = parseFloat(data.o);
+        setTickers(prev => ({
+          ...prev,
+          [coin]: {
+            price:     close,
+            change24h: open > 0 ? ((close - open) / open) * 100 : 0,
+            volume24h: parseFloat(data.q),
+            high24h:   parseFloat(data.h),
+            low24h:    parseFloat(data.l),
+          },
+        }));
+      };
+
+      ws.onerror = () => console.error('[use24hTicker] WS error');
+
+      ws.onclose = () => {
+        if (destroyed.current) return;
+        const delay = reconnectDelay.current;
+        reconnectDelay.current = Math.min(30_000, delay * 2);
+        console.warn(`[use24hTicker] WS closed — reconnecting in ${delay}ms`);
+        reconnectTimer.current = setTimeout(connect, delay);
+      };
+
+      wsRef.current = ws;
+    }
+
+    connect();
+
+    return () => {
+      destroyed.current = true;
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+      if (wsRef.current) wsRef.current.close();
     };
-
-    wsRef.current = ws;
-    return () => ws.close();
   }, []);
 
   return tickers;

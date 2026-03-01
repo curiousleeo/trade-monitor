@@ -255,7 +255,28 @@ export function useAITrader({
       const hitTP  = isLong ? price >= trade.takeProfit : price <= trade.takeProfit;
       const hitSL  = isLong ? price <= trade.stopLoss   : price >= trade.stopLoss;
 
-      if (!hitTP && !hitSL) { remaining.push(trade); return; }
+      if (!hitTP && !hitSL) {
+        // Breakeven logic: when 1R in profit, move stop to entry price (risk-free)
+        const riskDist = Math.abs(trade.entryPrice - trade.stopLoss);
+        const stopAlreadyAtBE = isLong
+          ? trade.stopLoss >= trade.entryPrice
+          : trade.stopLoss <= trade.entryPrice;
+
+        if (!stopAlreadyAtBE && riskDist > 0) {
+          const unrealizedR = isLong
+            ? (price - trade.entryPrice) / riskDist
+            : (trade.entryPrice - price) / riskDist;
+
+          if (unrealizedR >= 1.0) {
+            remaining.push({ ...trade, stopLoss: trade.entryPrice });
+            tradeChanged = true;
+            return;
+          }
+        }
+
+        remaining.push(trade);
+        return;
+      }
 
       const exitPrice = hitTP ? trade.takeProfit : trade.stopLoss;
       const units     = trade.size / trade.entryPrice;
@@ -290,13 +311,15 @@ export function useAITrader({
       balance:    Math.max(0, port.balance + balanceDelta),
       openTrades: remaining,
     };
-    const nextHistory = [...newlyClosed, ...closedRef.current].slice(0, 200);
 
     setPortfolio(nextPortfolio);
-    setClosedTrades(nextHistory);
 
-    // Storage: write once per trade close event, never on ticks
-    newlyClosed.forEach(t => onTradeClosed(nextPortfolio, t));
+    // Only update closed history + storage on actual closes (not breakeven updates)
+    if (newlyClosed.length > 0) {
+      const nextHistory = [...newlyClosed, ...closedRef.current].slice(0, 200);
+      setClosedTrades(nextHistory);
+      newlyClosed.forEach(t => onTradeClosed(nextPortfolio, t));
+    }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tickers.BTC?.price, tickers.ETH?.price, tickers.SOL?.price]);

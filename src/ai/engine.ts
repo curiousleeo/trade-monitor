@@ -102,6 +102,38 @@ function scoreRSIMomentum(candles: Candle[]): { value: number; description: stri
   return { value: Math.max(-100, Math.min(100, score)), description: desc };
 }
 
+function scoreVolume(candles: Candle[]): { value: number; description: string } {
+  if (candles.length < 21) return { value: 0, description: 'Not enough data for volume analysis' };
+
+  const recent = candles.slice(-21);
+  const last = recent[recent.length - 1];
+  const avgVolume = recent.slice(0, -1).reduce((sum, c) => sum + c.volume, 0) / 20;
+
+  if (avgVolume === 0) return { value: 0, description: 'Zero average volume' };
+
+  const ratio = last.volume / avgVolume;
+  const isBullishCandle = last.close >= last.open;
+
+  let score: number;
+  let desc: string;
+
+  if (ratio >= 2.0) {
+    score = isBullishCandle ? 80 : -80;
+    desc = `Volume spike ${ratio.toFixed(1)}×avg — ${isBullishCandle ? 'bullish' : 'bearish'} conviction`;
+  } else if (ratio >= 1.3) {
+    score = isBullishCandle ? 40 : -40;
+    desc = `Above-avg volume ${ratio.toFixed(1)}×avg — ${isBullishCandle ? 'bullish' : 'bearish'}`;
+  } else if (ratio < 0.5) {
+    score = 0;
+    desc = `Low volume ${ratio.toFixed(1)}×avg — weak conviction`;
+  } else {
+    score = 0;
+    desc = `Normal volume ${ratio.toFixed(1)}×avg`;
+  }
+
+  return { value: Math.max(-100, Math.min(100, score)), description: desc };
+}
+
 function scoreSentimentComposite(
   news: NewsItem[],
   fearGreed: FearGreed | null,
@@ -113,17 +145,26 @@ function scoreSentimentComposite(
   // High-impact categories get 3× weight (Hack/Regulation can move prices 10%+)
   const HIGH_IMPACT = ['Hack', 'Regulation', 'Exchange', 'Stablecoin', 'MacroEcon', 'GeoPolitic'];
 
-  let newsScore = 0;
+  let weightedScore = 0;
+  let totalWeight = 0;
   let bullCount = 0;
   let bearCount = 0;
+
   recentNews.forEach(n => {
+    const age = now - n.publishedAt;
+    // Time decay: < 30 min = 3×, 30 min–2h = 1.5×, 2h–4h = 1×
+    const timeWeight = age < 1800 ? 3 : age < 7200 ? 1.5 : 1;
+    const categoryWeight = HIGH_IMPACT.some(cat => n.categories.includes(cat)) ? 3 : 1;
+    const w = timeWeight * categoryWeight;
+
     const s = scoreSentiment(n.title);
-    const w = HIGH_IMPACT.some(cat => n.categories.includes(cat)) ? 3 : 1;
-    if (s === 'bullish') { newsScore += w; bullCount++; }
-    if (s === 'bearish') { newsScore -= w; bearCount++; }
+    if (s === 'bullish') { weightedScore += w; bullCount++; }
+    if (s === 'bearish') { weightedScore -= w; bearCount++; }
+    totalWeight += w;
   });
-  const newsNorm = recentNews.length > 0
-    ? Math.max(-100, Math.min(100, (newsScore / recentNews.length) * 100))
+
+  const newsNorm = totalWeight > 0
+    ? Math.max(-100, Math.min(100, (weightedScore / totalWeight) * 100))
     : 0;
 
   const fg = fearGreed?.value ?? 50;
@@ -200,18 +241,21 @@ export function generatePrediction(
   const price = candles[candles.length - 1].close;
   const atr = calcATR(candles);
 
-  const trend    = scoreTrend(candles);
-  const momentum = scoreRSIMomentum(candles);
+  const trend     = scoreTrend(candles);
+  const momentum  = scoreRSIMomentum(candles);
+  const volume    = scoreVolume(candles);
   const sentiment = scoreSentimentComposite(news, fearGreed);
   const structure = scoreStructure(price, prevDay);
-  const funding  = scoreFundingRate(fundingRate);
+  const funding   = scoreFundingRate(fundingRate);
 
+  // Weights: EMA 30%, RSI 25%, Sentiment 20%, Volume 10%, Structure 10%, Funding 5%
   const signals: Signal[] = [
-    { name: 'EMA Trend',      value: trend.value,     weight: 0.35, description: trend.description },
-    { name: 'RSI Momentum',   value: momentum.value,  weight: 0.25, description: momentum.description },
-    { name: 'Sentiment',      value: sentiment.value, weight: 0.20, description: sentiment.description },
+    { name: 'EMA Trend',        value: trend.value,     weight: 0.30, description: trend.description },
+    { name: 'RSI Momentum',     value: momentum.value,  weight: 0.25, description: momentum.description },
+    { name: 'Sentiment',        value: sentiment.value, weight: 0.20, description: sentiment.description },
+    { name: 'Volume',           value: volume.value,    weight: 0.10, description: volume.description },
     { name: 'Market Structure', value: structure.value, weight: 0.10, description: structure.description },
-    { name: 'Funding Bias',   value: funding.value,   weight: 0.10, description: funding.description },
+    { name: 'Funding Bias',     value: funding.value,   weight: 0.05, description: funding.description },
   ];
 
   // Composite: weighted average of signal values, scaled to 0–100 (50 = neutral)
@@ -236,7 +280,7 @@ export function generatePrediction(
   const entryZone: [number, number] = [price * 0.997, price * 1.003];
 
   // Stop and target via ATR (minimum 2:1 R:R)
-  const stopDist  = atr * 1.5;
+  const stopDist   = atr * 1.5;
   const targetDist = atr * 3.0;
 
   const stopPrice   = direction === 'LONG'  ? price - stopDist  : price + stopDist;
@@ -251,7 +295,7 @@ export function generatePrediction(
       `Primary driver: ${topSignal.name} — ${topSignal.description}. ` +
       `ATR-based stop at $${stopPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} ` +
       `with target $${targetPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} (R:R 1:2). ` +
-      `Overall ${bullBear} bias confirmed by ${signals.filter(s => (direction === 'LONG' ? s.value > 0 : s.value < 0)).length}/5 signals.`;
+      `Overall ${bullBear} bias confirmed by ${signals.filter(s => (direction === 'LONG' ? s.value > 0 : s.value < 0)).length}/6 signals.`;
 
   return {
     id: `pred-${coin}-${timeframe}-${Date.now()}`,
