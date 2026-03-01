@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NewsItem } from '../types';
 import { scoreSentiment } from '../utils/sentiment';
 
@@ -55,10 +55,23 @@ function getMacroTags(categories: string): { label: string; color: string }[] {
     .map(([, val]) => val);
 }
 
+type Filter = 'ALL' | 'BTC' | 'ETH' | 'SOL' | 'MACRO';
+
+const FILTERS: Filter[] = ['ALL', 'BTC', 'ETH', 'SOL', 'MACRO'];
+
+const FILTER_COLORS: Record<Filter, string> = {
+  ALL:   'var(--accent)',
+  BTC:   '#f7931a',
+  ETH:   '#627eea',
+  SOL:   '#9945ff',
+  MACRO: 'var(--amber)',
+};
+
 export function NewsFeed({ news, highlightedId, onItemClick }: Props) {
   const listRef    = useRef<HTMLDivElement>(null);
   const prevLen    = useRef(0);
   const itemRefs   = useRef<Record<string, HTMLDivElement | null>>({});
+  const [filter, setFilter] = useState<Filter>('ALL');
 
   // Auto-scroll to top when new items arrive
   useEffect(() => {
@@ -75,19 +88,40 @@ export function NewsFeed({ news, highlightedId, onItemClick }: Props) {
     }
   }, [highlightedId]);
 
+  const filtered = news.filter(item => {
+    if (filter === 'ALL')   return true;
+    if (filter === 'MACRO') return getMacroTags(item.categories).length > 0;
+    return getCoins(item.categories).includes(filter);
+  });
+
   return (
     <div className="news-panel">
       <div className="panel-header">
         <span className="live-dot" />
         <span>Market News</span>
-        {news.length > 0 && <span className="news-count">{news.length}</span>}
+        {news.length > 0 && <span className="news-count">{filtered.length}</span>}
+      </div>
+
+      <div className="news-filters">
+        {FILTERS.map(f => (
+          <button
+            key={f}
+            className={`news-filter-btn ${filter === f ? 'news-filter-btn--active' : ''}`}
+            style={{ '--filter-color': FILTER_COLORS[f] } as React.CSSProperties}
+            onClick={() => setFilter(f)}
+          >
+            {f}
+          </button>
+        ))}
       </div>
 
       <div className="news-list" ref={listRef}>
         {news.length === 0 ? (
           <div className="news-empty">Fetching market news…</div>
         ) : (
-          news.map(item => {
+          filtered.length === 0 ? (
+            <div className="news-empty">No {filter} news yet</div>
+          ) : filtered.map(item => {
             const sentiment    = scoreSentiment(item.title);
             const coins        = getCoins(item.categories);
             const macroTags    = getMacroTags(item.categories);
@@ -152,3 +186,4 @@ export function NewsFeed({ news, highlightedId, onItemClick }: Props) {
     </div>
   );
 }
+

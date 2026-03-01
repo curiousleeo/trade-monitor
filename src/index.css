@@ -823,6 +823,87 @@ body {
 .trades-empty-sub { font-size: 11px; color: var(--text4); max-width: 220px; line-height: 1.6; }
 
 /* ════════════════════════════════════════
+   NEWS FILTER CHIPS
+════════════════════════════════════════ */
+.news-filters {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0; background: var(--bg2);
+}
+.news-filter-btn {
+  padding: 2px 9px; border-radius: 99px; border: 1px solid var(--border2);
+  background: transparent; color: var(--text3);
+  font-family: var(--font-ui); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.04em; cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.news-filter-btn:hover {
+  color: var(--filter-color, var(--accent));
+  border-color: var(--filter-color, var(--accent));
+}
+.news-filter-btn--active {
+  background: color-mix(in srgb, var(--filter-color, var(--accent)) 14%, transparent);
+  color: var(--filter-color, var(--accent));
+  border-color: color-mix(in srgb, var(--filter-color, var(--accent)) 50%, transparent);
+}
+
+/* ════════════════════════════════════════
+   PRICE TICK FLASH
+════════════════════════════════════════ */
+@keyframes tick-up {
+  0%   { color: var(--green); text-shadow: 0 0 8px color-mix(in srgb, var(--green) 60%, transparent); }
+  100% { color: inherit; text-shadow: none; }
+}
+@keyframes tick-down {
+  0%   { color: var(--red); text-shadow: 0 0 8px color-mix(in srgb, var(--red) 60%, transparent); }
+  100% { color: inherit; text-shadow: none; }
+}
+.price-tick-up   { animation: tick-up   0.7s ease-out forwards; }
+.price-tick-down { animation: tick-down 0.7s ease-out forwards; }
+
+/* ════════════════════════════════════════
+   TOAST NOTIFICATION
+════════════════════════════════════════ */
+@keyframes toast-in {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.toast-container {
+  position: fixed; bottom: 24px; right: 24px; z-index: 2000;
+}
+.toast {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 12px 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  min-width: 280px; max-width: 340px;
+  animation: toast-in 0.28s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  position: relative; overflow: hidden;
+}
+.toast-accent {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  border-radius: 12px 0 0 12px;
+}
+.toast-icon { font-size: 18px; flex-shrink: 0; margin-left: 6px; }
+.toast-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.toast-title {
+  font-family: var(--font-ui); font-size: 12px; font-weight: 600; color: var(--text);
+}
+.toast-msg {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.toast-now { color: var(--text3); font-weight: 400; }
+.toast-close {
+  width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0;
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--text3); cursor: pointer; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s, color 0.1s;
+}
+.toast-close:hover { background: var(--bg3); color: var(--text); }
+
+/* ════════════════════════════════════════
    MOBILE
 ════════════════════════════════════════ */
 @media (max-width: 768px) {

@@ -7,6 +7,7 @@ import { StatsStrip }      from './components/StatsStrip';
 import { ChartToolbar }    from './components/ChartToolbar';
 import { AIPanel }         from './components/AIPanel';
 import { HelpModal }       from './components/HelpModal';
+import { Toast }           from './components/Toast';
 import { useKlines }       from './hooks/useKlines';
 import { useNews }         from './hooks/useNews';
 import { useFearGreed }    from './hooks/useFearGreed';
@@ -60,6 +61,7 @@ export default function App() {
   const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai'>('news');
   const [sidebarOpen, setSidebarOpen]         = useState(true);
   const [showHelp, setShowHelp]               = useState(false);
+  const [toast, setToast]                     = useState<{ coin: Coin; direction: 'above' | 'below'; alertPrice: number; currentPrice: number } | null>(null);
 
   const now = useClock();
   const { theme, toggle: toggleTheme } = useTheme();
@@ -97,6 +99,15 @@ export default function App() {
 
   useEffect(() => {
     if (triggered) {
+      const alert = alerts.find(a => a.id === triggered);
+      if (alert) {
+        setToast({
+          coin:         alert.coin,
+          direction:    alert.direction,
+          alertPrice:   alert.price,
+          currentPrice: tickers[alert.coin]?.price ?? alert.price,
+        });
+      }
       setPriceFlash(true);
       const t = setTimeout(() => { setPriceFlash(false); clearTriggered(); }, 1500);
       return () => clearTimeout(t);
@@ -171,6 +182,18 @@ export default function App() {
       </header>
 
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+
+      {toast && (
+        <div className="toast-container">
+          <Toast
+            coin={toast.coin}
+            direction={toast.direction}
+            alertPrice={toast.alertPrice}
+            currentPrice={toast.currentPrice}
+            onClose={() => setToast(null)}
+          />
+        </div>
+      )}
 
       {/* ── Stats strip ── */}
       <StatsStrip
