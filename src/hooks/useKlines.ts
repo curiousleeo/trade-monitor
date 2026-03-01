@@ -19,30 +19,37 @@ function parseRestKline(k: string[]): Candle {
 }
 
 export function useKlines(coin: Coin, timeframe: Timeframe) {
-  const [candles, setCandles] = useState<Candle[]>([]);
+  const [candles, setCandles]       = useState<Candle[]>([]);
   const [liveCandle, setLiveCandle] = useState<Candle | null>(null);
-  const wsRef            = useRef<WebSocket | null>(null);
-  const reconnectTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const reconnectDelay   = useRef(1000);
-  const destroyed        = useRef(false);
+  const wsRef          = useRef<WebSocket | null>(null);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectDelay = useRef(1000);
+  // Each effect run gets a unique connId. Stale callbacks compare their captured
+  // connId against the ref and bail out if it's been superseded — fixes the race
+  // condition where the old WS's onclose fires after the new effect has started.
+  const connIdRef = useRef(0);
 
   useEffect(() => {
     setCandles([]);
     setLiveCandle(null);
-    destroyed.current     = false;
     reconnectDelay.current = 1000;
 
+    const connId = ++connIdRef.current;
     const symbol = SYMBOLS[coin].toUpperCase();
 
     fetch(
       `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&limit=500`
     )
       .then(res => res.json())
-      .then((data: string[][]) => setCandles(data.map(parseRestKline)))
+      .then((data: string[][]) => {
+        if (connIdRef.current !== connId) return; // stale: coin/TF changed mid-fetch
+        if (!Array.isArray(data)) return;
+        setCandles(data.map(parseRestKline));
+      })
       .catch(err => console.error('Klines fetch failed:', err));
 
     function connect() {
-      if (destroyed.current) return;
+      if (connIdRef.current !== connId) return; // superseded
       if (wsRef.current) wsRef.current.close();
 
       const ws = new WebSocket(
@@ -50,6 +57,7 @@ export function useKlines(coin: Coin, timeframe: Timeframe) {
       );
 
       ws.onmessage = (event) => {
+        if (connIdRef.current !== connId) return;
         const msg = JSON.parse(event.data);
         const k = msg.k;
         const candle: Candle = {
@@ -79,7 +87,7 @@ export function useKlines(coin: Coin, timeframe: Timeframe) {
       ws.onerror = () => console.error(`[useKlines] WS error (${coin} ${timeframe})`);
 
       ws.onclose = () => {
-        if (destroyed.current) return;
+        if (connIdRef.current !== connId) return; // superseded — don't reconnect
         const delay = reconnectDelay.current;
         reconnectDelay.current = Math.min(30_000, delay * 2);
         console.warn(`[useKlines] WS closed — reconnecting in ${delay}ms (${coin} ${timeframe})`);
@@ -92,7 +100,8 @@ export function useKlines(coin: Coin, timeframe: Timeframe) {
     connect();
 
     return () => {
-      destroyed.current = true;
+      // Don't touch connIdRef here — the next effect will increment it.
+      // Just stop in-flight work for this connection.
       if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
       if (wsRef.current) wsRef.current.close();
     };
