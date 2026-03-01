@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Chart }           from './components/Chart';
 import { NewsFeed }        from './components/NewsFeed';
 import { PriceAlertPanel } from './components/PriceAlertPanel';
@@ -28,20 +28,37 @@ function useClock() {
   return now;
 }
 
+function useTheme() {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('apex-theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('apex-theme', theme);
+  }, [theme]);
+
+  const toggle = useCallback(() => setTheme(t => t === 'dark' ? 'light' : 'dark'), []);
+  return { theme, toggle };
+}
+
 export default function App() {
-  const [coin, setCoin]                     = useState<Coin>('BTC');
-  const [timeframe, setTimeframe]           = useState<Timeframe>('15m');
-  const [showEMA20, setShowEMA20]           = useState(true);
-  const [showEMA50, setShowEMA50]           = useState(true);
-  const [showEMA200, setShowEMA200]         = useState(false);
-  const [showRSI, setShowRSI]               = useState(false);
+  const [coin, setCoin]                       = useState<Coin>('BTC');
+  const [timeframe, setTimeframe]             = useState<Timeframe>('15m');
+  const [showEMA20, setShowEMA20]             = useState(true);
+  const [showEMA50, setShowEMA50]             = useState(true);
+  const [showEMA200, setShowEMA200]           = useState(false);
+  const [showRSI, setShowRSI]                 = useState(false);
   const [showNewsMarkers, setShowNewsMarkers] = useState(true);
-  const [priceFlash, setPriceFlash]         = useState(false);
-  const [scrollToTime, setScrollToTime]     = useState<number | null>(null);
+  const [priceFlash, setPriceFlash]           = useState(false);
+  const [scrollToTime, setScrollToTime]       = useState<number | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
-  const [sidebarTab, setSidebarTab]         = useState<'news' | 'ai'>('news');
+  const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai'>('news');
 
   const now = useClock();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   // ── Data hooks ─────────────────────────────────────────────────────────
   const { candles, liveCandle } = useKlines(coin, timeframe);
@@ -55,7 +72,7 @@ export default function App() {
   const fundingSOL = useFundingRate('SOL');
   const fundingRates = { BTC: fundingBTC, ETH: fundingETH, SOL: fundingSOL };
 
-  const prevDay     = usePrevDayOHLC(coin);
+  const prevDay = usePrevDayOHLC(coin);
   const { alerts, addAlert, removeAlert, triggered, clearTriggered } =
     usePriceAlerts(tickers[coin]?.price ?? null, coin);
 
@@ -96,9 +113,8 @@ export default function App() {
     setTimeout(() => setScrollToTime(null), 500);
   }, []);
 
-  // Clock formatting
   const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase();
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
 
   return (
     <div className="app">
@@ -107,8 +123,8 @@ export default function App() {
       <header className="header">
         <div className="brand">
           <span className="brand-hex">◈</span>
-          <span className="brand-text">APEX</span>
-          <span className="brand-apex">AI TERMINAL</span>
+          <span className="brand-text">Apex</span>
+          <span className="brand-apex">AI Terminal</span>
         </div>
 
         <div className="coin-cards">
@@ -125,14 +141,21 @@ export default function App() {
         </div>
 
         <div className="header-right">
+          <div className="header-status">
+            <div className="header-status-dot" />
+            <span className="header-status-label">Live</span>
+          </div>
           <div className="header-clock">
             <span className="header-clock-time">{timeStr}</span>
             <span className="header-clock-date">{dateStr}</span>
           </div>
-          <div className="header-status">
-            <div className="header-status-dot" />
-            <span className="header-status-label">LIVE</span>
-          </div>
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀' : '●'}
+          </button>
         </div>
       </header>
 
@@ -152,13 +175,13 @@ export default function App() {
               className={`sidebar-tab ${sidebarTab === 'news' ? 'active' : ''}`}
               onClick={() => setSidebarTab('news')}
             >
-              F1  NEWS
+              News
             </button>
             <button
               className={`sidebar-tab ${sidebarTab === 'ai' ? 'active' : ''}`}
               onClick={() => setSidebarTab('ai')}
             >
-              F2  APEX
+              Apex AI
             </button>
           </div>
 
@@ -220,28 +243,6 @@ export default function App() {
           </div>
         </section>
       </main>
-
-      {/* ── Bloomberg Function Key Bar ── */}
-      <div className="fnkey-bar">
-        {[
-          ['F1', 'NEWS'],
-          ['F2', 'APEX AI'],
-          ['F3', 'CHART'],
-          ['F4', 'ALERTS'],
-          ['F5', 'SIGNALS'],
-          ['F6', 'TRADES'],
-          ['F8', 'RESET'],
-        ].map(([num, label]) => (
-          <div key={num} className="fnkey">
-            <span className="fnkey-num">{num}</span>
-            <span className="fnkey-label">{label}</span>
-          </div>
-        ))}
-        <div className="fnkey-bar-right">
-          <span className="fnkey-bar-status">BINANCE · SPOT</span>
-          <span className="fnkey-bar-status">USD</span>
-        </div>
-      </div>
 
     </div>
   );

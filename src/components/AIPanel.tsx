@@ -210,7 +210,7 @@ function TradeCard({ trade, currentPrice }: { trade: Trade; currentPrice: number
       </div>
       {pnl !== null && (
         <div className={`trade-pnl ${pnl >= 0 ? 'up' : 'down'}`}>
-          P&L: {fmtUsd(pnl)} ({fmtPct((pnl / trade.size) * 100)})
+          {fmtUsd(pnl)} ({fmtPct((pnl / trade.size) * 100)})
         </div>
       )}
     </div>
