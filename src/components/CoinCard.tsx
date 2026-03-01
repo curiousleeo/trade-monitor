@@ -5,7 +5,6 @@ interface Props {
   coin: Coin;
   ticker: TickerData | null;
   active: boolean;
-  flash: boolean;
   onClick: (coin: Coin) => void;
 }
 
@@ -27,7 +26,7 @@ function formatPrice(price: number, coin: Coin): string {
   return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function CoinCard({ coin, ticker, active, flash, onClick }: Props) {
+export function CoinCard({ coin, ticker, active, onClick }: Props) {
   const color = COIN_COLORS[coin];
   const isUp = (ticker?.change24h ?? 0) >= 0;
 
@@ -49,7 +48,7 @@ export function CoinCard({ coin, ticker, active, flash, onClick }: Props) {
 
   return (
     <button
-      className={`coin-card ${active ? 'coin-card--active' : ''} ${flash ? 'coin-card--flash' : ''}`}
+      className={`coin-card ${active ? 'coin-card--active' : ''}`}
       style={{ '--coin-color': color } as React.CSSProperties}
       onClick={() => onClick(coin)}
     >

@@ -1,19 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Chart }           from './components/Chart';
 import { NewsFeed }        from './components/NewsFeed';
-import { PriceAlertPanel } from './components/PriceAlertPanel';
 import { CoinCard }        from './components/CoinCard';
 import { StatsStrip }      from './components/StatsStrip';
 import { ChartToolbar }    from './components/ChartToolbar';
 import { AIPanel }         from './components/AIPanel';
 import { HelpModal }       from './components/HelpModal';
-import { Toast }           from './components/Toast';
 import { useKlines }       from './hooks/useKlines';
 import { useNews }         from './hooks/useNews';
 import { useFearGreed }    from './hooks/useFearGreed';
 import { useFundingRate }  from './hooks/useFundingRate';
 import { usePrevDayOHLC }  from './hooks/usePrevDayOHLC';
-import { usePriceAlerts }  from './hooks/usePriceAlerts';
 import { use24hTicker }    from './hooks/use24hTicker';
 import { useAllCandles }   from './hooks/useAllCandles';
 import { useAITrader }     from './hooks/useAITrader';
@@ -54,15 +51,12 @@ export default function App() {
   const [showEMA200, setShowEMA200]           = useState(false);
   const [showBB, setShowBB]                   = useState(false);
   const [showRSI, setShowRSI]                 = useState(false);
-  const [priceFlash, setPriceFlash]           = useState(false);
   const [mobilePage, setMobilePage]           = useState<'chart' | 'news' | 'ai'>('chart');
   const [scrollToTime, setScrollToTime]       = useState<number | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai'>('news');
   const [sidebarOpen, setSidebarOpen]         = useState(true);
   const [showHelp, setShowHelp]               = useState(false);
-  const [toast, setToast]                     = useState<{ coin: Coin; direction: 'above' | 'below'; alertPrice: number; currentPrice: number } | null>(null);
-
   const now = useClock();
   const { theme, toggle: toggleTheme } = useTheme();
 
@@ -79,9 +73,6 @@ export default function App() {
   const fundingRates = { BTC: fundingBTC, ETH: fundingETH, SOL: fundingSOL };
 
   const prevDay = usePrevDayOHLC(coin);
-  const { alerts, addAlert, removeAlert, triggered, clearTriggered } =
-    usePriceAlerts(tickers[coin]?.price ?? null, coin);
-
   const allCandles = useAllCandles(timeframe);
 
   // ── AI Trader ──────────────────────────────────────────────────────────
@@ -96,23 +87,6 @@ export default function App() {
     news,
     prevDay,
   });
-
-  useEffect(() => {
-    if (triggered) {
-      const alert = alerts.find(a => a.id === triggered);
-      if (alert) {
-        setToast({
-          coin:         alert.coin,
-          direction:    alert.direction,
-          alertPrice:   alert.price,
-          currentPrice: tickers[alert.coin]?.price ?? alert.price,
-        });
-      }
-      setPriceFlash(true);
-      const t = setTimeout(() => { setPriceFlash(false); clearTriggered(); }, 1500);
-      return () => clearTimeout(t);
-    }
-  }, [triggered, clearTriggered]);
 
   const handleCandleClick = useCallback((time: number) => {
     if (news.length === 0) return;
@@ -149,7 +123,6 @@ export default function App() {
               coin={c}
               ticker={tickers[c]}
               active={coin === c}
-              flash={coin === c && priceFlash}
               onClick={setCoin}
             />
           ))}
@@ -183,18 +156,6 @@ export default function App() {
 
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 
-      {toast && (
-        <div className="toast-container">
-          <Toast
-            coin={toast.coin}
-            direction={toast.direction}
-            alertPrice={toast.alertPrice}
-            currentPrice={toast.currentPrice}
-            onClose={() => setToast(null)}
-          />
-        </div>
-      )}
-
       {/* ── Stats strip ── */}
       <StatsStrip
         fearGreed={fearGreed}
@@ -222,20 +183,11 @@ export default function App() {
           </div>
 
           {sidebarTab === 'news' ? (
-            <>
-              <NewsFeed
-                news={news}
-                highlightedId={highlightedNewsId}
-                onItemClick={handleNewsClick}
-              />
-              <PriceAlertPanel
-                coin={coin}
-                currentPrice={tickers[coin]?.price ?? null}
-                alerts={alerts}
-                onAdd={addAlert}
-                onRemove={removeAlert}
-              />
-            </>
+            <NewsFeed
+              news={news}
+              highlightedId={highlightedNewsId}
+              onItemClick={handleNewsClick}
+            />
           ) : (
             <AIPanel
               portfolio={portfolio}

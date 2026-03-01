@@ -94,6 +94,7 @@ export function Chart({
   const rsiRef  = useRef<HTMLDivElement>(null);
 
   const [hover, setHover] = useState<HoverData | null>(null);
+  const [countdown, setCountdown] = useState<string | null>(null);
 
   const chartRef      = useRef<IChartApi | null>(null);
   const rsiChartRef   = useRef<IChartApi | null>(null);
@@ -417,6 +418,27 @@ export function Chart({
     } catch {}
   }, [scrollToTime, timeframe]);
 
+  // ── Candle countdown timer ────────────────────────────────────────────
+  useEffect(() => {
+    function update() {
+      if (!liveCandle) { setCountdown(null); return; }
+      const tfSec = TF_SECONDS[timeframe];
+      const closeAt = liveCandle.time + tfSec;
+      const remaining = Math.max(0, closeAt - Math.floor(Date.now() / 1000));
+      const h = Math.floor(remaining / 3600);
+      const m = Math.floor((remaining % 3600) / 60);
+      const s = remaining % 60;
+      setCountdown(
+        h > 0
+          ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+          : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      );
+    }
+    update();
+    const t = setInterval(update, 1000);
+    return () => clearInterval(t);
+  }, [liveCandle, timeframe]);
+
   // ── Derive display data (hover or last candle) ────────────────────────
   const last = candles.length > 0 ? candles[candles.length - 1] : null;
   const display: HoverData | null = hover ?? (last ? { o: last.open, h: last.high, l: last.low, c: last.close, v: last.volume } : null);
@@ -447,7 +469,13 @@ export function Chart({
               {chgPct >= 0 ? '+' : ''}{chgPct.toFixed(2)}%
             </span>
             <span style={labelStyle}>V</span>
-            <span style={{ ...valStyle, marginRight: 0 }}>{fmtVol(display.v)}</span>
+            <span style={{ ...valStyle, marginRight: countdown ? 12 : 0 }}>{fmtVol(display.v)}</span>
+            {countdown && (
+              <>
+                <span style={{ ...labelStyle, marginRight: 3 }}>⏱</span>
+                <span style={{ fontSize: 11, color: '#6b7280', fontFamily: 'monospace' }}>{countdown}</span>
+              </>
+            )}
           </div>
         )}
 
