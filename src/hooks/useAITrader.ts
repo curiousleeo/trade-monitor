@@ -223,7 +223,7 @@ export function useAITrader({
       };
       lastEntryCandle.current = candleIdx;
       setPortfolio(next);
-      onTradeOpened(next);  // ← only write to storage here
+      onTradeOpened(next, trade);  // ← only write to storage here
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [predictions]);
