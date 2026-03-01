@@ -24,6 +24,10 @@ const COIN_COLORS: Record<string, string> = {
 
 // Macro categories that move crypto prices — with display labels + colors
 const MACRO_TAGS: Record<string, { label: string; color: string }> = {
+  // Global macro / geopolitical (stream 3)
+  MacroEcon:   { label: 'MACRO',   color: '#ea580c' },
+  GeoPolitic:  { label: 'GEO',     color: '#b91c1c' },
+  // Crypto-specific macro (stream 2)
   Regulation:  { label: 'REG',     color: '#dc2626' },
   Exchange:    { label: 'EXCH',    color: '#2563eb' },
   Hack:        { label: 'HACK',    color: '#dc2626' },

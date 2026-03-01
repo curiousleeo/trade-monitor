@@ -111,7 +111,7 @@ function scoreSentimentComposite(
   const recentNews = news.filter(n => now - n.publishedAt < 14400);
 
   // High-impact categories get 3× weight (Hack/Regulation can move prices 10%+)
-  const HIGH_IMPACT = ['Hack', 'Regulation', 'Exchange', 'Stablecoin'];
+  const HIGH_IMPACT = ['Hack', 'Regulation', 'Exchange', 'Stablecoin', 'MacroEcon', 'GeoPolitic'];
 
   let newsScore = 0;
   let bullCount = 0;
