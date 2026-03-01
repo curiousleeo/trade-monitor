@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Chart }           from './components/Chart';
+import { TradingViewChart } from './components/TradingViewChart';
 import { NewsFeed }        from './components/NewsFeed';
 import { CoinCard }        from './components/CoinCard';
 import { StatsStrip }      from './components/StatsStrip';
@@ -46,13 +46,7 @@ function useTheme() {
 export default function App() {
   const [coin, setCoin]                       = useState<Coin>('BTC');
   const [timeframe, setTimeframe]             = useState<Timeframe>('15m');
-  const [showEMA20, setShowEMA20]             = useState(true);
-  const [showEMA50, setShowEMA50]             = useState(true);
-  const [showEMA200, setShowEMA200]           = useState(false);
-  const [showBB, setShowBB]                   = useState(false);
-  const [showRSI, setShowRSI]                 = useState(false);
   const [mobilePage, setMobilePage]           = useState<'chart' | 'news' | 'ai'>('chart');
-  const [scrollToTime, setScrollToTime]       = useState<number | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai'>('news');
   const [sidebarOpen, setSidebarOpen]         = useState(true);
@@ -88,18 +82,8 @@ export default function App() {
     prevDay,
   });
 
-  const handleCandleClick = useCallback((time: number) => {
-    if (news.length === 0) return;
-    const closest = news.reduce((prev, cur) =>
-      Math.abs(cur.publishedAt - time) < Math.abs(prev.publishedAt - time) ? cur : prev
-    );
-    setHighlightedNewsId(closest.id);
-  }, [news]);
-
-  const handleNewsClick = useCallback((publishedAt: number, id: string) => {
-    setScrollToTime(publishedAt);
+  const handleNewsClick = useCallback((_publishedAt: number, id: string) => {
     setHighlightedNewsId(id);
-    setTimeout(() => setScrollToTime(null), 500);
   }, []);
 
   const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -203,32 +187,13 @@ export default function App() {
 
         <section className="chart-area">
           <ChartToolbar
-            timeframe={timeframe}    onTimeframe={setTimeframe}
-            showEMA20={showEMA20}    onEMA20={setShowEMA20}
-            showEMA50={showEMA50}    onEMA50={setShowEMA50}
-            showEMA200={showEMA200}  onEMA200={setShowEMA200}
-            showBB={showBB}          onBB={setShowBB}
-            showRSI={showRSI}        onRSI={setShowRSI}
-            sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(o => !o)}
+            timeframe={timeframe}
+            onTimeframe={setTimeframe}
+            sidebarOpen={sidebarOpen}
+            onToggleSidebar={() => setSidebarOpen(o => !o)}
           />
           <div className="chart-canvas">
-            <Chart
-              candles={candles}
-              liveCandle={liveCandle}
-              timeframe={timeframe}
-              coin={coin}
-              theme={theme}
-              showEMA20={showEMA20}
-              showEMA50={showEMA50}
-              showEMA200={showEMA200}
-              showBB={showBB}
-              showRSI={showRSI}
-              prevDay={prevDay}
-              scrollToTime={scrollToTime}
-              onCandleClick={handleCandleClick}
-              tradeMarkers={tradeMarkers}
-              openTrades={portfolio.openTrades}
-            />
+            <TradingViewChart coin={coin} timeframe={timeframe} theme={theme} />
           </div>
         </section>
       </main>
