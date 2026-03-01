@@ -9,6 +9,7 @@ interface Props {
   showBB: boolean;      onBB:     (v: boolean) => void;
   showRSI: boolean;     onRSI:    (v: boolean) => void;
   showNewsMarkers: boolean; onNewsMarkers: (v: boolean) => void;
+  sidebarOpen: boolean; onToggleSidebar: () => void;
 }
 
 const TIMEFRAMES: Timeframe[] = ['1m', '5m', '15m', '1h', '4h', '1d'];
@@ -21,9 +22,18 @@ export function ChartToolbar({
   showBB, onBB,
   showRSI, onRSI,
   showNewsMarkers, onNewsMarkers,
+  sidebarOpen, onToggleSidebar,
 }: Props) {
   return (
     <div className="chart-toolbar">
+
+      <button
+        className="sidebar-toggle"
+        onClick={onToggleSidebar}
+        title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+      >
+        {sidebarOpen ? '◀' : '▶'}
+      </button>
 
       <div className="toolbar-group">
         <span className="toolbar-label">TF</span>

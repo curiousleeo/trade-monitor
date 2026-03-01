@@ -89,10 +89,10 @@ body {
 ════════════════════════════════════════ */
 .header {
   display: flex; align-items: center;
-  height: 52px; flex-shrink: 0;
+  height: 44px; flex-shrink: 0;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
-  padding: 0 20px;
+  padding: 0 16px;
   gap: 0;
 }
 
@@ -202,10 +202,10 @@ body {
 ════════════════════════════════════════ */
 .stats-strip {
   display: flex; align-items: center;
-  height: 36px; flex-shrink: 0;
+  height: 30px; flex-shrink: 0;
   border-bottom: 1px solid var(--border);
   background: var(--bg2);
-  padding: 0 20px;
+  padding: 0 16px;
   overflow-x: auto; overflow-y: hidden; gap: 0;
 }
 .stats-strip::-webkit-scrollbar { height: 0; }
@@ -245,7 +245,23 @@ body {
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column; overflow: hidden;
   background: var(--bg);
+  transition: width 0.2s ease, border-color 0.2s ease;
 }
+.sidebar--collapsed {
+  width: 0;
+  border-right-color: transparent;
+}
+
+/* Sidebar toggle button — lives in chart-toolbar, leftmost */
+.sidebar-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 24px; flex-shrink: 0;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text3); font-size: 10px;
+  cursor: pointer; transition: all 0.1s;
+  margin-right: 8px;
+}
+.sidebar-toggle:hover { background: var(--bg3); color: var(--text2); }
 
 .chart-area { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 .chart-canvas { flex: 1; overflow: hidden; }
@@ -275,10 +291,10 @@ body {
 ════════════════════════════════════════ */
 .chart-toolbar {
   display: flex; align-items: center;
-  height: 40px; flex-shrink: 0;
+  height: 36px; flex-shrink: 0;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
-  padding: 0 16px; overflow-x: auto; gap: 0;
+  padding: 0 12px; overflow-x: auto; gap: 0;
 }
 .chart-toolbar::-webkit-scrollbar { height: 0; }
 

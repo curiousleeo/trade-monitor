@@ -57,6 +57,7 @@ export default function App() {
   const [scrollToTime, setScrollToTime]       = useState<number | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai'>('news');
+  const [sidebarOpen, setSidebarOpen]         = useState(true);
 
   const now = useClock();
   const { theme, toggle: toggleTheme } = useTheme();
@@ -169,7 +170,7 @@ export default function App() {
 
       {/* ── Body ── */}
       <main className="main">
-        <aside className="sidebar">
+        <aside className={`sidebar${sidebarOpen ? '' : ' sidebar--collapsed'}`}>
 
           <div className="sidebar-tabs">
             <button
@@ -223,6 +224,7 @@ export default function App() {
             showBB={showBB}          onBB={setShowBB}
             showRSI={showRSI}        onRSI={setShowRSI}
             showNewsMarkers={showNewsMarkers} onNewsMarkers={setShowNewsMarkers}
+            sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(o => !o)}
           />
           <div className="chart-canvas">
             <Chart
