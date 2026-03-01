@@ -306,6 +306,7 @@ body {
 .tb-ema20  { color: var(--blue)   !important; background: color-mix(in srgb, var(--blue)   10%, transparent) !important; border-color: color-mix(in srgb, var(--blue)   30%, transparent) !important; }
 .tb-ema50  { color: var(--amber)  !important; background: color-mix(in srgb, var(--amber)  10%, transparent) !important; border-color: color-mix(in srgb, var(--amber)  30%, transparent) !important; }
 .tb-ema200 { color: var(--purple) !important; background: color-mix(in srgb, var(--purple) 10%, transparent) !important; border-color: color-mix(in srgb, var(--purple) 30%, transparent) !important; }
+.tb-bb     { color: var(--purple) !important; background: color-mix(in srgb, var(--purple) 10%, transparent) !important; border-color: color-mix(in srgb, var(--purple) 30%, transparent) !important; }
 .tb-rsi    { color: var(--red)    !important; background: color-mix(in srgb, var(--red)    10%, transparent) !important; border-color: color-mix(in srgb, var(--red)    30%, transparent) !important; }
 .tb-news   { color: var(--accent) !important; background: color-mix(in srgb, var(--accent) 10%, transparent) !important; border-color: color-mix(in srgb, var(--accent) 30%, transparent) !important; }
 

@@ -50,6 +50,7 @@ export default function App() {
   const [showEMA20, setShowEMA20]             = useState(true);
   const [showEMA50, setShowEMA50]             = useState(true);
   const [showEMA200, setShowEMA200]           = useState(false);
+  const [showBB, setShowBB]                   = useState(false);
   const [showRSI, setShowRSI]                 = useState(false);
   const [showNewsMarkers, setShowNewsMarkers] = useState(true);
   const [priceFlash, setPriceFlash]           = useState(false);
@@ -219,6 +220,7 @@ export default function App() {
             showEMA20={showEMA20}    onEMA20={setShowEMA20}
             showEMA50={showEMA50}    onEMA50={setShowEMA50}
             showEMA200={showEMA200}  onEMA200={setShowEMA200}
+            showBB={showBB}          onBB={setShowBB}
             showRSI={showRSI}        onRSI={setShowRSI}
             showNewsMarkers={showNewsMarkers} onNewsMarkers={setShowNewsMarkers}
           />
@@ -229,9 +231,11 @@ export default function App() {
               news={news}
               timeframe={timeframe}
               coin={coin}
+              theme={theme}
               showEMA20={showEMA20}
               showEMA50={showEMA50}
               showEMA200={showEMA200}
+              showBB={showBB}
               showRSI={showRSI}
               showNewsMarkers={showNewsMarkers}
               prevDay={prevDay}
