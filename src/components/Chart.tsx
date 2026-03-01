@@ -270,7 +270,22 @@ export function Chart({
 
   // ── Set chart data ────────────────────────────────────────────────────
   useEffect(() => {
-    if (!candleSeriesRef.current || candles.length === 0) return;
+    if (!candleSeriesRef.current) return;
+
+    // Clear all series when candles reset (coin/TF switch) to prevent
+    // "Cannot update oldest data" errors from stale timestamps
+    if (candles.length === 0) {
+      candleSeriesRef.current.setData([]);
+      volumeSeriesRef.current?.setData([]);
+      ema20Ref.current?.setData([]);
+      ema50Ref.current?.setData([]);
+      ema200Ref.current?.setData([]);
+      bbUpperRef.current?.setData([]);
+      bbMiddleRef.current?.setData([]);
+      bbLowerRef.current?.setData([]);
+      rsiSeriesRef.current?.setData([]);
+      return;
+    }
 
     candleSeriesRef.current.setData(
       candles.map<CandlestickData>(c => ({
@@ -326,8 +341,11 @@ export function Chart({
   useEffect(() => {
     if (!liveCandle) return;
     const t = liveCandle.time as UTCTimestamp;
-    candleSeriesRef.current?.update({ time: t, open: liveCandle.open, high: liveCandle.high, low: liveCandle.low, close: liveCandle.close });
-    volumeSeriesRef.current?.update({ time: t, value: liveCandle.volume, color: liveCandle.close >= liveCandle.open ? '#22c55e33' : '#ef444433' });
+    // Guard against stale-data errors during coin/TF transitions
+    try {
+      candleSeriesRef.current?.update({ time: t, open: liveCandle.open, high: liveCandle.high, low: liveCandle.low, close: liveCandle.close });
+      volumeSeriesRef.current?.update({ time: t, value: liveCandle.volume, color: liveCandle.close >= liveCandle.open ? '#22c55e33' : '#ef444433' });
+    } catch { /* swallow: series cleared mid-transition */ }
   }, [liveCandle]);
 
   // ── EMA / BB visibility toggles ───────────────────────────────────────
