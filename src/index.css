@@ -913,61 +913,70 @@ body {
 ════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* Make entire app scrollable/flexible on mobile */
-  html, body, #root { overflow: auto; }
+  html, body, #root { overflow: hidden; height: 100%; }
   .app { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-  /* ── Header: compact, single row ── */
+  /* ── Header: compact — hide coin cards (bottom nav handles switching) ── */
   .header {
-    height: auto; min-height: 52px; flex-wrap: nowrap;
-    padding: 8px 12px; gap: 8px;
+    height: auto; min-height: 48px; flex-wrap: nowrap;
+    padding: 6px 12px; gap: 8px; flex-shrink: 0;
   }
+  /* Keep brand compact */
+  .brand { margin-right: 0; }
   .brand-apex { display: none; }
-  .coin-cards { gap: 4px; flex: 1; justify-content: center; }
-  .coin-card  { padding: 4px 10px; min-width: 72px; }
-  .coin-card-price { font-size: 11px; }
-  .header-right { gap: 6px; }
+  /* Hide the 3 price cards from header — coin switcher lives in bottom nav */
+  .coin-cards { display: none; }
+  .header-right { gap: 6px; margin-left: auto; }
   .header-status, .header-clock { display: none; }
 
   /* ── Stats strip: horizontal scroll, compact ── */
   .stats-strip {
-    height: auto; min-height: 30px; padding: 6px 12px;
+    height: auto; min-height: 28px; padding: 4px 12px;
     overflow-x: auto; -webkit-overflow-scrolling: touch;
-    gap: 16px; flex-wrap: nowrap;
+    gap: 16px; flex-wrap: nowrap; flex-shrink: 0;
   }
   .stat-item { flex-shrink: 0; }
 
-  /* ── Main: takes remaining height, no flex-row ── */
+  /* ── Main: relative container, chart always behind panels ── */
   .main {
-    flex: 1; flex-direction: row; min-height: 0;
-    padding-bottom: 56px; /* room for bottom nav */
+    flex: 1; min-height: 0; position: relative;
+    overflow: hidden;
+    padding-bottom: 0; /* bottom nav is fixed, not in flow */
   }
 
-  /* Page visibility by mobilePage state */
-  .mobile-page--chart .chart-area { display: flex; }
-  .mobile-page--chart .sidebar    { display: none; }
-  .mobile-page--news  .sidebar    { display: flex; width: 100%; }
-  .mobile-page--news  .chart-area { display: none; }
-  .mobile-page--ai    .sidebar    { display: flex; width: 100%; }
-  .mobile-page--ai    .chart-area { display: none; }
+  /* Chart always fills the container — never display:none so ResizeObserver works */
+  .chart-area {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    padding-bottom: 56px; /* avoid bottom nav */
+  }
 
-  /* Sidebar full-width when visible on mobile */
+  /* Sidebar overlays chart — hidden by default */
   .sidebar {
-    width: 100%; height: 100%; border-right: none;
-    border-top: none; order: 1; flex-shrink: 0;
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border-right: none; border-top: none;
+    background: var(--bg);
+    z-index: 10;
+    display: none; /* hidden unless active page */
+    overflow-y: auto;
+    padding-bottom: 56px; /* avoid bottom nav */
   }
-  /* Hide the desktop sidebar toggle on mobile */
-  .sidebar--collapsed { width: 100%; }
-  .sidebar-toggle { display: none; }
+  /* Sidebar visible when on news or ai page */
+  .mobile-page--news .sidebar,
+  .mobile-page--ai   .sidebar { display: flex; }
 
-  /* Chart area full size */
-  .chart-area { width: 100%; height: 100%; }
+  /* Desktop sidebar toggle not needed on mobile */
+  .sidebar--collapsed { display: none; }
+  .sidebar-toggle { display: none; }
 
   /* Toolbar: horizontal scroll */
   .chart-toolbar {
     padding: 0 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap; flex-shrink: 0;
+    scrollbar-width: none;
   }
+  .chart-toolbar::-webkit-scrollbar { display: none; }
   .toolbar-group { flex-shrink: 0; }
 
   /* ── Mobile bottom nav ── */
@@ -976,13 +985,13 @@ body {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
     background: var(--bg2); border-top: 1px solid var(--border);
     box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .mobile-nav-coins {
-    display: flex; align-items: center; justify-content: center;
-    gap: 6px; padding: 6px 12px 0;
+    display: flex; align-items: center; gap: 6px; padding: 6px 10px 0;
   }
   .mobile-coin-btn {
-    flex: 1; padding: 4px 0; border-radius: 6px;
+    flex: 1; padding: 5px 0; border-radius: 6px;
     border: 1px solid var(--border2); background: var(--bg3);
     color: var(--text2); font-family: var(--font-ui); font-size: 11px;
     font-weight: 700; letter-spacing: 0.04em; cursor: pointer;
@@ -991,12 +1000,15 @@ body {
   .mobile-coin-btn--active {
     background: var(--accent); color: #fff; border-color: var(--accent);
   }
-  .mobile-nav-tabs {
-    display: flex; align-items: stretch;
+  .mobile-coin-price {
+    display: block; font-family: var(--font-mono);
+    font-size: 9px; font-weight: 500; margin-top: 1px;
+    opacity: 0.85;
   }
+  .mobile-nav-tabs { display: flex; align-items: stretch; }
   .mobile-tab-btn {
     flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 1px; padding: 6px 4px 8px;
+    justify-content: center; gap: 1px; padding: 5px 4px 7px;
     border: none; background: transparent; color: var(--text3);
     font-family: var(--font-ui); font-size: 10px; font-weight: 600;
     letter-spacing: 0.03em; cursor: pointer;
@@ -1007,6 +1019,5 @@ body {
 }
 
 @media (max-width: 480px) {
-  .header { padding: 6px 10px; }
-  .coin-card { padding: 4px 8px; min-width: 64px; }
+  .header { padding: 5px 10px; }
 }

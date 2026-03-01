@@ -284,15 +284,27 @@ export default function App() {
       {/* ── Mobile bottom nav ── */}
       <nav className="mobile-nav">
         <div className="mobile-nav-coins">
-          {COINS.map(c => (
-            <button
-              key={c}
-              className={`mobile-coin-btn ${coin === c ? 'mobile-coin-btn--active' : ''}`}
-              onClick={() => { setCoin(c); setMobilePage('chart'); }}
-            >
-              {c}
-            </button>
-          ))}
+          {COINS.map(c => {
+            const t = tickers[c];
+            const isUp = (t?.change24h ?? 0) >= 0;
+            const price = t
+              ? (c === 'BTC'
+                  ? `$${Math.round(t.price).toLocaleString()}`
+                  : `$${t.price.toFixed(2)}`)
+              : '—';
+            return (
+              <button
+                key={c}
+                className={`mobile-coin-btn ${coin === c ? 'mobile-coin-btn--active' : ''}`}
+                onClick={() => { setCoin(c); setMobilePage('chart'); }}
+              >
+                {c}
+                <span className={`mobile-coin-price ${coin === c ? '' : (isUp ? 'up' : 'down')}`}>
+                  {price}
+                </span>
+              </button>
+            );
+          })}
         </div>
         <div className="mobile-nav-tabs">
           <button
