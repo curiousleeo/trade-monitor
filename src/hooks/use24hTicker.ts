@@ -26,11 +26,13 @@ export function use24hTicker(): Tickers {
       const coin = STREAM_TO_COIN[data.s.toLowerCase()];
       if (!coin) return;
 
+      const close = parseFloat(data.c);
+      const open  = parseFloat(data.o);
       setTickers(prev => ({
         ...prev,
         [coin]: {
-          price:     parseFloat(data.c),
-          change24h: parseFloat(data.P),
+          price:     close,
+          change24h: open > 0 ? ((close - open) / open) * 100 : 0,
           volume24h: parseFloat(data.q), // quote volume in USDT
           high24h:   parseFloat(data.h),
           low24h:    parseFloat(data.l),
