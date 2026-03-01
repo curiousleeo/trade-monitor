@@ -5,6 +5,7 @@ import { PriceAlertPanel } from './components/PriceAlertPanel';
 import { CoinCard }        from './components/CoinCard';
 import { StatsStrip }      from './components/StatsStrip';
 import { ChartToolbar }    from './components/ChartToolbar';
+import { AIPanel }         from './components/AIPanel';
 import { useKlines }       from './hooks/useKlines';
 import { useNews }         from './hooks/useNews';
 import { useFearGreed }    from './hooks/useFearGreed';
@@ -12,6 +13,8 @@ import { useFundingRate }  from './hooks/useFundingRate';
 import { usePrevDayOHLC }  from './hooks/usePrevDayOHLC';
 import { usePriceAlerts }  from './hooks/usePriceAlerts';
 import { use24hTicker }    from './hooks/use24hTicker';
+import { useAllCandles }   from './hooks/useAllCandles';
+import { useAITrader }     from './hooks/useAITrader';
 import { Coin, Timeframe } from './types';
 
 const COINS: Coin[] = ['BTC', 'ETH', 'SOL'];
@@ -27,15 +30,40 @@ export default function App() {
   const [priceFlash, setPriceFlash]         = useState(false);
   const [scrollToTime, setScrollToTime]     = useState<number | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
+  const [sidebarTab, setSidebarTab]         = useState<'news' | 'ai'>('news');
 
+  // ── Data hooks ─────────────────────────────────────────────────────────
   const { candles, liveCandle } = useKlines(coin, timeframe);
   const tickers     = use24hTicker();
   const news        = useNews();
   const fearGreed   = useFearGreed();
   const fundingRate = useFundingRate(coin);
+
+  // Funding rates for all 3 coins (AI trader needs them per-coin)
+  const fundingBTC = useFundingRate('BTC');
+  const fundingETH = useFundingRate('ETH');
+  const fundingSOL = useFundingRate('SOL');
+  const fundingRates = { BTC: fundingBTC, ETH: fundingETH, SOL: fundingSOL };
+
   const prevDay     = usePrevDayOHLC(coin);
   const { alerts, addAlert, removeAlert, triggered, clearTriggered } =
     usePriceAlerts(tickers[coin]?.price ?? null, coin);
+
+  // REST candles snapshot for all 3 coins (AI uses for non-active coins)
+  const allCandles = useAllCandles(timeframe);
+
+  // ── AI Trader ──────────────────────────────────────────────────────────
+  const { portfolio, predictions, tfMatrix, tradeMarkers, resetPortfolio } = useAITrader({
+    allCandles,
+    activeCandles:   candles,
+    activeCoin:      coin,
+    activeTimeframe: timeframe,
+    tickers,
+    fearGreed,
+    fundingRates,
+    news,
+    prevDay,
+  });
 
   // Flash coin card when alert triggers
   useEffect(() => {
@@ -70,6 +98,7 @@ export default function App() {
         <div className="brand">
           <span className="brand-hex">⬡</span>
           <span className="brand-text">Trade Monitor</span>
+          <span className="brand-apex">· APEX AI</span>
         </div>
 
         <div className="coin-cards">
@@ -96,18 +125,48 @@ export default function App() {
       {/* ── Body ── */}
       <main className="main">
         <aside className="sidebar">
-          <NewsFeed
-            news={news}
-            highlightedId={highlightedNewsId}
-            onItemClick={handleNewsClick}
-          />
-          <PriceAlertPanel
-            coin={coin}
-            currentPrice={tickers[coin]?.price ?? null}
-            alerts={alerts}
-            onAdd={addAlert}
-            onRemove={removeAlert}
-          />
+
+          {/* Sidebar tab bar */}
+          <div className="sidebar-tabs">
+            <button
+              className={`sidebar-tab ${sidebarTab === 'news' ? 'active' : ''}`}
+              onClick={() => setSidebarTab('news')}
+            >
+              📰 NEWS
+            </button>
+            <button
+              className={`sidebar-tab ${sidebarTab === 'ai' ? 'active' : ''}`}
+              onClick={() => setSidebarTab('ai')}
+            >
+              ⚡ APEX
+            </button>
+          </div>
+
+          {sidebarTab === 'news' ? (
+            <>
+              <NewsFeed
+                news={news}
+                highlightedId={highlightedNewsId}
+                onItemClick={handleNewsClick}
+              />
+              <PriceAlertPanel
+                coin={coin}
+                currentPrice={tickers[coin]?.price ?? null}
+                alerts={alerts}
+                onAdd={addAlert}
+                onRemove={removeAlert}
+              />
+            </>
+          ) : (
+            <AIPanel
+              portfolio={portfolio}
+              predictions={predictions}
+              tfMatrix={tfMatrix}
+              activeCoin={coin}
+              livePrice={tickers[coin]?.price ?? null}
+              onReset={resetPortfolio}
+            />
+          )}
         </aside>
 
         <section className="chart-area">
@@ -134,6 +193,8 @@ export default function App() {
               prevDay={prevDay}
               scrollToTime={scrollToTime}
               onCandleClick={handleCandleClick}
+              tradeMarkers={tradeMarkers}
+              openTrades={portfolio.openTrades}
             />
           </div>
         </section>

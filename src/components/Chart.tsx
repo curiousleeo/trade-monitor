@@ -11,9 +11,10 @@ import {
   CandlestickData,
   HistogramData,
 } from 'lightweight-charts';
-import { Candle, NewsItem, Timeframe } from '../types';
+import { Candle, NewsItem, Timeframe, Trade } from '../types';
 import { calcEMA, calcRSI } from '../utils/indicators';
 import { PrevDay } from '../hooks/usePrevDayOHLC';
+import { TradeMarkerData } from '../hooks/useAITrader';
 
 interface ChartProps {
   candles: Candle[];
@@ -29,6 +30,8 @@ interface ChartProps {
   prevDay: PrevDay | null;
   scrollToTime: number | null;
   onCandleClick: (time: number) => void;
+  tradeMarkers?: TradeMarkerData[];
+  openTrades?: Trade[];
 }
 
 const TF_SECONDS: Record<Timeframe, number> = {
@@ -56,6 +59,7 @@ export function Chart({
   candles, liveCandle, news, timeframe, coin,
   showEMA20, showEMA50, showEMA200, showRSI, showNewsMarkers,
   prevDay, scrollToTime, onCandleClick,
+  tradeMarkers = [], openTrades = [],
 }: ChartProps) {
   const mainRef = useRef<HTMLDivElement>(null);
   const rsiRef  = useRef<HTMLDivElement>(null);
@@ -70,8 +74,9 @@ export function Chart({
   const ema50Ref  = useRef<ISeriesApi<'Line'> | null>(null);
   const ema200Ref = useRef<ISeriesApi<'Line'> | null>(null);
   const rsiSeriesRef  = useRef<ISeriesApi<'Line'> | null>(null);
-  const pdHighRef = useRef<IPriceLine | null>(null);
-  const pdLowRef  = useRef<IPriceLine | null>(null);
+  const pdHighRef   = useRef<IPriceLine | null>(null);
+  const pdLowRef    = useRef<IPriceLine | null>(null);
+  const tradeLinesRef = useRef<IPriceLine[]>([]);
 
   // ── Mount main chart ──────────────────────────────────────────────────
   useEffect(() => {
@@ -257,25 +262,62 @@ export function Chart({
     pdLowRef.current  = candleSeriesRef.current.createPriceLine({ price: prevDay.low,  color: '#f87171', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'PD L' });
   }, [prevDay]);
 
-  // ── News markers ──────────────────────────────────────────────────────
+  // ── News + Trade markers ──────────────────────────────────────────────
   useEffect(() => {
     if (!candleSeriesRef.current || candles.length === 0) return;
-    if (!showNewsMarkers) {
-      candleSeriesRef.current.setMarkers([]);
-      return;
-    }
     const tfSec = TF_SECONDS[timeframe];
     const firstT = candles[0].time, lastT = candles[candles.length - 1].time;
-    const grouped = new Map<number, number>();
-    news.forEach(item => {
-      const t = Math.floor(item.publishedAt / tfSec) * tfSec;
-      if (t >= firstT && t <= lastT + tfSec) grouped.set(t, (grouped.get(t) ?? 0) + 1);
+
+    // News markers
+    const newsMarkers: SeriesMarker<UTCTimestamp>[] = [];
+    if (showNewsMarkers) {
+      const grouped = new Map<number, number>();
+      news.forEach(item => {
+        const t = Math.floor(item.publishedAt / tfSec) * tfSec;
+        if (t >= firstT && t <= lastT + tfSec) grouped.set(t, (grouped.get(t) ?? 0) + 1);
+      });
+      grouped.forEach((count, time) => {
+        newsMarkers.push({ time: time as UTCTimestamp, position: 'aboveBar', color: '#f59e0b', shape: 'circle', text: count > 1 ? `${count}` : '', size: 1 });
+      });
+    }
+
+    // Trade markers
+    const tradeMs: SeriesMarker<UTCTimestamp>[] = tradeMarkers
+      .filter(m => m.coin === coin && m.time >= firstT && m.time <= lastT + tfSec)
+      .map(m => {
+        const isEntry = m.type === 'ENTRY_LONG' || m.type === 'ENTRY_SHORT';
+        const isLong  = m.type === 'ENTRY_LONG' || m.type === 'EXIT_TP';
+        const isTP    = m.type === 'EXIT_TP';
+        const isSL    = m.type === 'EXIT_SL';
+        return {
+          time:     m.time as UTCTimestamp,
+          position: (isEntry ? (isLong ? 'belowBar' : 'aboveBar') : (isTP ? 'aboveBar' : 'belowBar')) as SeriesMarker<UTCTimestamp>['position'],
+          color:    isEntry ? (isLong ? '#22c55e' : '#ef4444') : (isTP ? '#22c55e' : '#ef4444'),
+          shape:    (isEntry ? (isLong ? 'arrowUp' : 'arrowDown') : 'circle') as SeriesMarker<UTCTimestamp>['shape'],
+          text:     isEntry ? (m.type === 'ENTRY_LONG' ? 'L' : 'S') : (isTP ? 'TP' : 'SL'),
+          size:     2,
+        };
+      });
+
+    const all = [...newsMarkers, ...tradeMs].sort((a, b) => (a.time as number) - (b.time as number));
+    candleSeriesRef.current.setMarkers(all);
+  }, [news, candles, timeframe, showNewsMarkers, tradeMarkers, coin]);
+
+  // ── Open trade TP/SL price lines ─────────────────────────────────────
+  useEffect(() => {
+    if (!candleSeriesRef.current) return;
+    // Remove old trade lines
+    tradeLinesRef.current.forEach(line => {
+      try { candleSeriesRef.current!.removePriceLine(line); } catch {}
     });
-    const markers: SeriesMarker<UTCTimestamp>[] = Array.from(grouped.entries())
-      .map(([time, count]) => ({ time: time as UTCTimestamp, position: 'aboveBar' as const, color: '#f59e0b', shape: 'circle' as const, text: count > 1 ? `${count}` : '', size: 1 }))
-      .sort((a, b) => a.time - b.time);
-    candleSeriesRef.current.setMarkers(markers);
-  }, [news, candles, timeframe, showNewsMarkers]);
+    tradeLinesRef.current = [];
+    // Add lines for open trades on this coin
+    openTrades.filter(t => t.coin === coin && t.status === 'OPEN').forEach(t => {
+      const tp = candleSeriesRef.current!.createPriceLine({ price: t.takeProfit, color: '#22c55e99', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'APEX TP' });
+      const sl = candleSeriesRef.current!.createPriceLine({ price: t.stopLoss,   color: '#ef444499', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'APEX SL' });
+      tradeLinesRef.current.push(tp, sl);
+    });
+  }, [openTrades, coin]);
 
   // ── Scroll chart to news time ─────────────────────────────────────────
   useEffect(() => {
