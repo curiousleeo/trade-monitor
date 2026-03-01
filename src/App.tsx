@@ -53,7 +53,7 @@ export default function App() {
   const allCandles = useAllCandles(timeframe);
 
   // ── AI Trader ──────────────────────────────────────────────────────────
-  const { portfolio, predictions, tfMatrix, tradeMarkers, resetPortfolio } = useAITrader({
+  const { portfolio, closedTrades, predictions, tfMatrix, tradeMarkers, resetPortfolio } = useAITrader({
     allCandles,
     activeCandles:   candles,
     activeCoin:      coin,
@@ -160,6 +160,7 @@ export default function App() {
           ) : (
             <AIPanel
               portfolio={portfolio}
+              closedTrades={closedTrades}
               predictions={predictions}
               tfMatrix={tfMatrix}
               activeCoin={coin}

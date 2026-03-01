@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Coin, Portfolio, Prediction, TFBias, Trade } from '../types';
+import { Coin, Prediction, TFBias, Trade } from '../types';
+import { StoredPortfolio } from '../lib/db';
 
 interface Props {
-  portfolio: Portfolio;
+  portfolio: StoredPortfolio;
+  closedTrades: Trade[];
   predictions: Record<Coin, Prediction | null>;
   tfMatrix: TFBias[];
   activeCoin: Coin;
@@ -46,11 +48,10 @@ function winRate(closedTrades: Trade[]): string {
   return `${wins}/${closedTrades.length} (${((wins / closedTrades.length) * 100).toFixed(0)}%)`;
 }
 
-function predAccuracy(predictions: Portfolio['predictions']): string {
-  const resolved = predictions.filter(p => p.resolved && p.accurate !== undefined);
-  if (resolved.length === 0) return '—';
-  const correct = resolved.filter(p => p.accurate).length;
-  return `${correct}/${resolved.length} (${((correct / resolved.length) * 100).toFixed(0)}%)`;
+function predAccuracy(closed: Trade[]): string {
+  if (closed.length === 0) return '—';
+  const wins = closed.filter(t => t.status === 'CLOSED_TP').length;
+  return `${wins}/${closed.length} (${((wins / closed.length) * 100).toFixed(0)}%)`;
 }
 
 // ─── Signal Bar ───────────────────────────────────────────────────────────────
@@ -218,7 +219,7 @@ function TradeCard({ trade, currentPrice }: { trade: Trade; currentPrice: number
 
 // ─── Main AIPanel ─────────────────────────────────────────────────────────────
 
-export function AIPanel({ portfolio, predictions, tfMatrix, activeCoin, livePrice, onReset }: Props) {
+export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, activeCoin, livePrice, onReset }: Props) {
   const [subTab, setSubTab] = useState<'signals' | 'trades'>('signals');
   const pred = predictions[activeCoin];
 
@@ -283,11 +284,11 @@ export function AIPanel({ portfolio, predictions, tfMatrix, activeCoin, livePric
             </div>
             <div className="portfolio-row">
               <span className="portfolio-label">Win Rate</span>
-              <span className="portfolio-val">{winRate(portfolio.closedTrades)}</span>
+              <span className="portfolio-val">{winRate(closedTrades)}</span>
             </div>
             <div className="portfolio-row">
               <span className="portfolio-label">Pred Accuracy</span>
-              <span className="portfolio-val">{predAccuracy(portfolio.predictions)}</span>
+              <span className="portfolio-val">{predAccuracy(closedTrades)}</span>
             </div>
             {/* $1k → $100k progress */}
             <div className="portfolio-progress">
@@ -315,16 +316,16 @@ export function AIPanel({ portfolio, predictions, tfMatrix, activeCoin, livePric
           )}
 
           {/* Closed trades */}
-          {portfolio.closedTrades.length > 0 && (
+          {closedTrades.length > 0 && (
             <div className="trades-section">
-              <div className="trades-section-title">HISTORY ({portfolio.closedTrades.length})</div>
-              {portfolio.closedTrades.slice(0, 20).map(t => (
+              <div className="trades-section-title">HISTORY ({closedTrades.length})</div>
+              {closedTrades.slice(0, 20).map(t => (
                 <TradeCard key={t.id} trade={t} currentPrice={null} />
               ))}
             </div>
           )}
 
-          {portfolio.openTrades.length === 0 && portfolio.closedTrades.length === 0 && (
+          {portfolio.openTrades.length === 0 && closedTrades.length === 0 && (
             <div className="trades-empty">
               <div>Waiting for high-confidence signal…</div>
               <div className="trades-empty-sub">APEX needs ≥65% confidence to enter a trade</div>
