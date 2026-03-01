@@ -107,15 +107,20 @@ function scoreSentimentComposite(
   fearGreed: FearGreed | null,
 ): { value: number; description: string } {
   const now = Date.now() / 1000;
-  const recentNews = news.filter(n => now - n.publishedAt < 7200); // last 2h
+  // 4h window — captures macro events (reg/hack/exchange) which may break hours before price reacts
+  const recentNews = news.filter(n => now - n.publishedAt < 14400);
+
+  // High-impact categories get 3× weight (Hack/Regulation can move prices 10%+)
+  const HIGH_IMPACT = ['Hack', 'Regulation', 'Exchange', 'Stablecoin'];
 
   let newsScore = 0;
   let bullCount = 0;
   let bearCount = 0;
   recentNews.forEach(n => {
     const s = scoreSentiment(n.title);
-    if (s === 'bullish') { newsScore += 1; bullCount++; }
-    if (s === 'bearish') { newsScore -= 1; bearCount++; }
+    const w = HIGH_IMPACT.some(cat => n.categories.includes(cat)) ? 3 : 1;
+    if (s === 'bullish') { newsScore += w; bullCount++; }
+    if (s === 'bearish') { newsScore -= w; bearCount++; }
   });
   const newsNorm = recentNews.length > 0
     ? Math.max(-100, Math.min(100, (newsScore / recentNews.length) * 100))
@@ -127,7 +132,7 @@ function scoreSentimentComposite(
 
   const combined = newsNorm * 0.6 + fgScore * 0.4;
   const parts: string[] = [];
-  if (recentNews.length > 0) parts.push(`${bullCount} bullish / ${bearCount} bearish news (2h)`);
+  if (recentNews.length > 0) parts.push(`${bullCount} bullish / ${bearCount} bearish news (4h)`);
   if (fearGreed) parts.push(`Fear & Greed ${fg} (${fearGreed.label})`);
 
   return {

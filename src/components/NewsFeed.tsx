@@ -16,32 +16,55 @@ function timeAgo(ts: number): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+// Coins we track
+const TRACKED_COINS = ['BTC', 'ETH', 'SOL'];
 const COIN_COLORS: Record<string, string> = {
   BTC: '#f7931a', ETH: '#627eea', SOL: '#9945ff',
 };
 
+// Macro categories that move crypto prices — with display labels + colors
+const MACRO_TAGS: Record<string, { label: string; color: string }> = {
+  Regulation:  { label: 'REG',     color: '#dc2626' },
+  Exchange:    { label: 'EXCH',    color: '#2563eb' },
+  Hack:        { label: 'HACK',    color: '#dc2626' },
+  Stablecoin:  { label: 'STABLE',  color: '#16a34a' },
+  Market:      { label: 'MARKET',  color: '#6b7280' },
+  Blockchain:  { label: 'CHAIN',   color: '#7c3aed' },
+  Mining:      { label: 'MINING',  color: '#d97706' },
+  Trading:     { label: 'TRADE',   color: '#0891b2' },
+};
+
+// Left-border color by sentiment
 const SENTIMENT_BORDER: Record<string, string> = {
-  bullish: '#10b981',
-  bearish: '#f43f5e',
-  neutral: '#1f2333',
+  bullish: 'var(--green)',
+  bearish: 'var(--red)',
+  neutral: 'var(--border)',
 };
 
 function getCoins(categories: string): string[] {
-  return ['BTC', 'ETH', 'SOL'].filter(c => categories.includes(c));
+  return TRACKED_COINS.filter(c => categories.includes(c));
+}
+
+function getMacroTags(categories: string): { label: string; color: string }[] {
+  return Object.entries(MACRO_TAGS)
+    .filter(([key]) => categories.includes(key))
+    .map(([, val]) => val);
 }
 
 export function NewsFeed({ news, highlightedId, onItemClick }: Props) {
-  const listRef = useRef<HTMLDivElement>(null);
-  const prevLengthRef = useRef(0);
-  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const listRef    = useRef<HTMLDivElement>(null);
+  const prevLen    = useRef(0);
+  const itemRefs   = useRef<Record<string, HTMLDivElement | null>>({});
 
+  // Auto-scroll to top when new items arrive
   useEffect(() => {
-    if (news.length > prevLengthRef.current && listRef.current) {
+    if (news.length > prevLen.current && listRef.current) {
       listRef.current.scrollTop = 0;
     }
-    prevLengthRef.current = news.length;
+    prevLen.current = news.length;
   }, [news.length]);
 
+  // Scroll highlighted item into view
   useEffect(() => {
     if (highlightedId && itemRefs.current[highlightedId]) {
       itemRefs.current[highlightedId]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -52,19 +75,22 @@ export function NewsFeed({ news, highlightedId, onItemClick }: Props) {
     <div className="news-panel">
       <div className="panel-header">
         <span className="live-dot" />
-        <span>Live News</span>
+        <span>Market News</span>
         {news.length > 0 && <span className="news-count">{news.length}</span>}
       </div>
 
       <div className="news-list" ref={listRef}>
         {news.length === 0 ? (
-          <div className="news-empty">Fetching latest news...</div>
+          <div className="news-empty">Fetching market news…</div>
         ) : (
           news.map(item => {
-            const sentiment  = scoreSentiment(item.title);
-            const coins      = getCoins(item.categories);
+            const sentiment    = scoreSentiment(item.title);
+            const coins        = getCoins(item.categories);
+            const macroTags    = getMacroTags(item.categories);
             const isHighlighted = item.id === highlightedId;
-            const borderColor   = isHighlighted ? '#f59e0b' : SENTIMENT_BORDER[sentiment];
+            const borderColor  = isHighlighted
+              ? 'var(--accent)'
+              : SENTIMENT_BORDER[sentiment];
 
             return (
               <div
@@ -83,9 +109,24 @@ export function NewsFeed({ news, highlightedId, onItemClick }: Props) {
 
                 <div className="news-footer">
                   <div className="news-coins">
+                    {/* Coin chips */}
                     {coins.map(c => (
-                      <span key={c} className="news-coin" style={{ color: COIN_COLORS[c] }}>
+                      <span
+                        key={c}
+                        className="news-coin"
+                        style={{ color: COIN_COLORS[c], borderColor: `${COIN_COLORS[c]}44` }}
+                      >
                         {c}
+                      </span>
+                    ))}
+                    {/* Macro category chips */}
+                    {macroTags.map(tag => (
+                      <span
+                        key={tag.label}
+                        className="news-coin news-tag"
+                        style={{ color: tag.color, borderColor: `${tag.color}44` }}
+                      >
+                        {tag.label}
                       </span>
                     ))}
                   </div>
