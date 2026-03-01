@@ -95,6 +95,7 @@ export function Chart({
 
   const [hover, setHover] = useState<HoverData | null>(null);
   const [countdown, setCountdown] = useState<string | null>(null);
+  const [countdownX, setCountdownX] = useState<number | null>(null);
 
   const chartRef      = useRef<IChartApi | null>(null);
   const rsiChartRef   = useRef<IChartApi | null>(null);
@@ -172,7 +173,17 @@ export function Chart({
       if (param.time) onCandleClick(param.time as number);
     });
 
+    // Track live candle x position for countdown badge
+    const updateCountdownX = () => {
+      const t = liveTimeRef.current;
+      if (t === null) { setCountdownX(null); return; }
+      const x = chart.timeScale().timeToCoordinate(t as UTCTimestamp);
+      setCountdownX(x !== null ? x : null);
+    };
+    chart.timeScale().subscribeVisibleTimeRangeChange(updateCountdownX);
+
     const obs = new ResizeObserver(() => {
+      updateCountdownX();
       if (mainRef.current && chartRef.current) {
         chartRef.current.resize(mainRef.current.clientWidth, mainRef.current.clientHeight);
       }
@@ -426,7 +437,7 @@ export function Chart({
     const tfSec = TF_SECONDS[timeframe];
     function update() {
       const openTime = liveTimeRef.current;
-      if (openTime === null) { setCountdown(null); return; }
+      if (openTime === null) { setCountdown(null); setCountdownX(null); return; }
       const remaining = Math.max(0, openTime + tfSec - Math.floor(Date.now() / 1000));
       const h = Math.floor(remaining / 3600);
       const m = Math.floor((remaining % 3600) / 60);
@@ -436,6 +447,9 @@ export function Chart({
           ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
           : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
       );
+      // Keep badge pinned under the live candle
+      const x = chartRef.current?.timeScale().timeToCoordinate(openTime as UTCTimestamp);
+      setCountdownX(x ?? null);
     }
     update();
     const t = setInterval(update, 1000);
@@ -482,17 +496,18 @@ export function Chart({
           </div>
         )}
 
-        {/* Candle countdown — time-axis style badge */}
-        {countdown && (
+        {/* Candle countdown — pinned under live candle on time axis */}
+        {countdown && countdownX !== null && (
           <div style={{
-            position: 'absolute', bottom: 28, right: 66,
+            position: 'absolute', bottom: 0,
+            left: countdownX, transform: 'translateX(-50%)',
             background: isUp ? '#22c55e' : '#ef4444',
             color: '#fff',
             fontSize: 11, fontFamily: "'SF Mono','Fira Code',monospace",
             fontWeight: 600, letterSpacing: '0.04em',
             padding: '2px 6px', borderRadius: 3,
             pointerEvents: 'none', userSelect: 'none',
-            zIndex: 5,
+            zIndex: 5, whiteSpace: 'nowrap',
           }}>
             {countdown}
           </div>
