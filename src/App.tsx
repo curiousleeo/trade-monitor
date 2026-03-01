@@ -6,6 +6,7 @@ import { CoinCard }        from './components/CoinCard';
 import { StatsStrip }      from './components/StatsStrip';
 import { ChartToolbar }    from './components/ChartToolbar';
 import { AIPanel }         from './components/AIPanel';
+import { HelpModal }       from './components/HelpModal';
 import { useKlines }       from './hooks/useKlines';
 import { useNews }         from './hooks/useNews';
 import { useFearGreed }    from './hooks/useFearGreed';
@@ -58,6 +59,7 @@ export default function App() {
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai'>('news');
   const [sidebarOpen, setSidebarOpen]         = useState(true);
+  const [showHelp, setShowHelp]               = useState(false);
 
   const now = useClock();
   const { theme, toggle: toggleTheme } = useTheme();
@@ -152,6 +154,13 @@ export default function App() {
             <span className="header-clock-date">{dateStr}</span>
           </div>
           <button
+            className="help-btn"
+            onClick={() => setShowHelp(true)}
+            title="How to use Apex"
+          >
+            ?
+          </button>
+          <button
             className="theme-toggle"
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -160,6 +169,8 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 
       {/* ── Stats strip ── */}
       <StatsStrip
