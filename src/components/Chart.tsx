@@ -94,8 +94,6 @@ export function Chart({
   const rsiRef  = useRef<HTMLDivElement>(null);
 
   const [hover, setHover] = useState<HoverData | null>(null);
-  const [countdown, setCountdown] = useState<string | null>(null);
-  const [countdownY, setCountdownY] = useState<number | null>(null);
 
   const chartRef      = useRef<IChartApi | null>(null);
   const rsiChartRef   = useRef<IChartApi | null>(null);
@@ -173,18 +171,7 @@ export function Chart({
       if (param.time) onCandleClick(param.time as number);
     });
 
-    // Track live price y position for countdown badge (price axis)
-    const updateCountdownY = () => {
-      const price = livePriceRef.current;
-      if (price === null) { setCountdownY(null); return; }
-      const y = candleSeriesRef.current?.priceToCoordinate(price);
-      setCountdownY(y ?? null);
-    };
-    chart.timeScale().subscribeVisibleTimeRangeChange(updateCountdownY);
-    chart.subscribeCrosshairMove(updateCountdownY);
-
     const obs = new ResizeObserver(() => {
-      updateCountdownY();
       if (mainRef.current && chartRef.current) {
         chartRef.current.resize(mainRef.current.clientWidth, mainRef.current.clientHeight);
       }
@@ -430,36 +417,6 @@ export function Chart({
     } catch {}
   }, [scrollToTime, timeframe]);
 
-  // ── Candle countdown timer ────────────────────────────────────────────
-  const liveTimeRef  = useRef<number | null>(null);
-  const livePriceRef = useRef<number | null>(null);
-  liveTimeRef.current  = liveCandle?.time  ?? null;
-  livePriceRef.current = liveCandle?.close ?? null;
-
-  useEffect(() => {
-    const tfSec = TF_SECONDS[timeframe];
-    function update() {
-      const openTime = liveTimeRef.current;
-      const price    = livePriceRef.current;
-      if (openTime === null || price === null) { setCountdown(null); setCountdownY(null); return; }
-      const remaining = Math.max(0, openTime + tfSec - Math.floor(Date.now() / 1000));
-      const h = Math.floor(remaining / 3600);
-      const m = Math.floor((remaining % 3600) / 60);
-      const s = remaining % 60;
-      setCountdown(
-        h > 0
-          ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-          : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-      );
-      // Y position on right price axis
-      const y = candleSeriesRef.current?.priceToCoordinate(price);
-      setCountdownY(y ?? null);
-    }
-    update();
-    const t = setInterval(update, 1000);
-    return () => clearInterval(t);
-  }, [liveCandle?.time, timeframe]);
-
   // ── Derive display data (hover or last candle) ────────────────────────
   const last = candles.length > 0 ? candles[candles.length - 1] : null;
   const display: HoverData | null = hover ?? (last ? { o: last.open, h: last.high, l: last.low, c: last.close, v: last.volume } : null);
@@ -500,24 +457,6 @@ export function Chart({
           </div>
         )}
 
-        {/* Candle countdown — on right price axis, below current price label */}
-        {countdown && countdownY !== null && (
-          <div style={{
-            position: 'absolute',
-            top: countdownY + 11,
-            right: 0,
-            background: isUp ? '#22c55e' : '#ef4444',
-            color: '#fff',
-            fontSize: 11, fontFamily: "'SF Mono','Fira Code',monospace",
-            fontWeight: 600, letterSpacing: '0.03em',
-            padding: '2px 6px',
-            minWidth: 65, textAlign: 'center',
-            pointerEvents: 'none', userSelect: 'none',
-            zIndex: 5, whiteSpace: 'nowrap',
-          }}>
-            {countdown}
-          </div>
-        )}
       </div>
 
       {showRSI && (
