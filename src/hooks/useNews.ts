@@ -4,7 +4,7 @@
  *  1. Coin-specific     — BTC, ETH, SOL (direct drivers)
  *  2. Crypto macro      — Regulation, Exchange, Hack, Stablecoin,
  *                         Market, Blockchain, Mining, Trading
- *  3. Global macro/geo  — Reuters Business RSS via rss2json proxy
+ *  3. Global macro/geo  — BBC Business + CNBC Economy RSS via rss2json proxy
  *                         Filtered to keywords that move risk assets:
  *                         Fed, inflation, war, sanctions, dollar, banking
  *
@@ -76,9 +76,10 @@ const GEO_KEYWORDS = [
 ];
 
 // Free RSS→JSON proxy (no API key, 10k req/month free)
+// Reuters RSS feeds were deprecated; using BBC Business + CNBC Economy instead
 const RSS_FEEDS = [
-  'https://feeds.reuters.com/reuters/businessNews',
-  'https://feeds.reuters.com/reuters/technologyNews',
+  'http://feeds.bbci.co.uk/news/business/rss.xml',
+  'https://www.cnbc.com/id/100003114/device/rss/rss.html',
 ];
 const RSS2JSON = 'https://api.rss2json.com/v1/api.json?count=20&rss_url=';
 
@@ -107,6 +108,7 @@ async function fetchMacroRss(): Promise<NewsItem[]> {
       const res  = await fetch(`${RSS2JSON}${encodeURIComponent(feed)}`);
       const data = await res.json();
       if (!Array.isArray(data?.items)) return;
+      const sourceName = feed.includes('bbc') ? 'BBC' : 'CNBC';
       (data.items as RssItem[]).forEach(item => {
         if (!isMacroRelevant(item.title)) return;
         const pubSec = Math.floor(new Date(item.pubDate).getTime() / 1000);
@@ -114,7 +116,7 @@ async function fetchMacroRss(): Promise<NewsItem[]> {
           id:          `rss-${item.link}`,
           title:       item.title,
           url:         item.link,
-          source:      'Reuters',
+          source:      sourceName,
           publishedAt: pubSec,
           categories:  macroCategory(item.title),
         });
