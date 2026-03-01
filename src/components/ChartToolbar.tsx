@@ -8,7 +8,6 @@ interface Props {
   showEMA200: boolean;  onEMA200: (v: boolean) => void;
   showBB: boolean;      onBB:     (v: boolean) => void;
   showRSI: boolean;     onRSI:    (v: boolean) => void;
-  showNewsMarkers: boolean; onNewsMarkers: (v: boolean) => void;
   sidebarOpen: boolean; onToggleSidebar: () => void;
 }
 
@@ -21,7 +20,6 @@ export function ChartToolbar({
   showEMA200, onEMA200,
   showBB, onBB,
   showRSI, onRSI,
-  showNewsMarkers, onNewsMarkers,
   sidebarOpen, onToggleSidebar,
 }: Props) {
   return (
@@ -63,13 +61,6 @@ export function ChartToolbar({
         <span className="toolbar-label">IND</span>
         <button className={`tb-btn ${showBB  ? 'tb-bb'  : ''}`} onClick={() => onBB(!showBB)} title="Bollinger Bands (20, 2)">BB</button>
         <button className={`tb-btn ${showRSI ? 'tb-rsi' : ''}`} onClick={() => onRSI(!showRSI)}>RSI</button>
-        <button
-          className={`tb-btn ${showNewsMarkers ? 'tb-news' : ''}`}
-          onClick={() => onNewsMarkers(!showNewsMarkers)}
-          title="Toggle news event markers"
-        >
-          ● NEWS
-        </button>
       </div>
 
     </div>

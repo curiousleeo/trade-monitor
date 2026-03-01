@@ -11,7 +11,7 @@ import {
   CandlestickData,
   HistogramData,
 } from 'lightweight-charts';
-import { Candle, NewsItem, Timeframe, Trade } from '../types';
+import { Candle, Timeframe, Trade } from '../types';
 import { calcEMA, calcRSI, calcBollingerBands } from '../utils/indicators';
 import { PrevDay } from '../hooks/usePrevDayOHLC';
 import { TradeMarkerData } from '../hooks/useAITrader';
@@ -19,7 +19,6 @@ import { TradeMarkerData } from '../hooks/useAITrader';
 interface ChartProps {
   candles: Candle[];
   liveCandle: Candle | null;
-  news: NewsItem[];
   timeframe: Timeframe;
   coin: string;
   theme: 'light' | 'dark';
@@ -28,7 +27,6 @@ interface ChartProps {
   showEMA200: boolean;
   showBB: boolean;
   showRSI: boolean;
-  showNewsMarkers: boolean;
   prevDay: PrevDay | null;
   scrollToTime: number | null;
   onCandleClick: (time: number) => void;
@@ -87,8 +85,8 @@ function fmtVol(v: number): string {
 }
 
 export function Chart({
-  candles, liveCandle, news, timeframe, coin, theme,
-  showEMA20, showEMA50, showEMA200, showBB, showRSI, showNewsMarkers,
+  candles, liveCandle, timeframe, coin, theme,
+  showEMA20, showEMA50, showEMA200, showBB, showRSI,
   prevDay, scrollToTime, onCandleClick,
   tradeMarkers = [], openTrades = [],
 }: ChartProps) {
@@ -367,23 +365,11 @@ export function Chart({
     pdLowRef.current  = candleSeriesRef.current.createPriceLine({ price: prevDay.low,  color: '#f87171', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'PD L' });
   }, [prevDay]);
 
-  // ── News + Trade markers ──────────────────────────────────────────────
+  // ── Trade markers ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!candleSeriesRef.current || candles.length === 0) return;
     const tfSec = TF_SECONDS[timeframe];
     const firstT = candles[0].time, lastT = candles[candles.length - 1].time;
-
-    const newsMarkers: SeriesMarker<UTCTimestamp>[] = [];
-    if (showNewsMarkers) {
-      const grouped = new Map<number, number>();
-      news.forEach(item => {
-        const t = Math.floor(item.publishedAt / tfSec) * tfSec;
-        if (t >= firstT && t <= lastT + tfSec) grouped.set(t, (grouped.get(t) ?? 0) + 1);
-      });
-      grouped.forEach((count, time) => {
-        newsMarkers.push({ time: time as UTCTimestamp, position: 'aboveBar', color: '#f59e0b', shape: 'circle', text: count > 1 ? `${count}` : '', size: 1 });
-      });
-    }
 
     const tradeMs: SeriesMarker<UTCTimestamp>[] = tradeMarkers
       .filter(m => m.coin === coin && m.time >= firstT && m.time <= lastT + tfSec)
@@ -401,9 +387,9 @@ export function Chart({
         };
       });
 
-    const all = [...newsMarkers, ...tradeMs].sort((a, b) => (a.time as number) - (b.time as number));
+    const all = [...tradeMs].sort((a, b) => (a.time as number) - (b.time as number));
     candleSeriesRef.current.setMarkers(all);
-  }, [news, candles, timeframe, showNewsMarkers, tradeMarkers, coin]);
+  }, [candles, timeframe, tradeMarkers, coin]);
 
   // ── Open trade TP/SL price lines ─────────────────────────────────────
   useEffect(() => {

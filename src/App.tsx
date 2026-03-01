@@ -54,8 +54,8 @@ export default function App() {
   const [showEMA200, setShowEMA200]           = useState(false);
   const [showBB, setShowBB]                   = useState(false);
   const [showRSI, setShowRSI]                 = useState(false);
-  const [showNewsMarkers, setShowNewsMarkers] = useState(true);
   const [priceFlash, setPriceFlash]           = useState(false);
+  const [mobilePage, setMobilePage]           = useState<'chart' | 'news' | 'ai'>('chart');
   const [scrollToTime, setScrollToTime]       = useState<number | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai'>('news');
@@ -203,7 +203,7 @@ export default function App() {
       />
 
       {/* ── Body ── */}
-      <main className="main">
+      <main className={`main mobile-page--${mobilePage}`}>
         <aside className={`sidebar${sidebarOpen ? '' : ' sidebar--collapsed'}`}>
 
           <div className="sidebar-tabs">
@@ -257,14 +257,12 @@ export default function App() {
             showEMA200={showEMA200}  onEMA200={setShowEMA200}
             showBB={showBB}          onBB={setShowBB}
             showRSI={showRSI}        onRSI={setShowRSI}
-            showNewsMarkers={showNewsMarkers} onNewsMarkers={setShowNewsMarkers}
             sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(o => !o)}
           />
           <div className="chart-canvas">
             <Chart
               candles={candles}
               liveCandle={liveCandle}
-              news={news}
               timeframe={timeframe}
               coin={coin}
               theme={theme}
@@ -273,7 +271,6 @@ export default function App() {
               showEMA200={showEMA200}
               showBB={showBB}
               showRSI={showRSI}
-              showNewsMarkers={showNewsMarkers}
               prevDay={prevDay}
               scrollToTime={scrollToTime}
               onCandleClick={handleCandleClick}
@@ -283,6 +280,44 @@ export default function App() {
           </div>
         </section>
       </main>
+
+      {/* ── Mobile bottom nav ── */}
+      <nav className="mobile-nav">
+        <div className="mobile-nav-coins">
+          {COINS.map(c => (
+            <button
+              key={c}
+              className={`mobile-coin-btn ${coin === c ? 'mobile-coin-btn--active' : ''}`}
+              onClick={() => { setCoin(c); setMobilePage('chart'); }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        <div className="mobile-nav-tabs">
+          <button
+            className={`mobile-tab-btn ${mobilePage === 'chart' ? 'mobile-tab-btn--active' : ''}`}
+            onClick={() => setMobilePage('chart')}
+          >
+            <span className="mobile-tab-icon">📈</span>
+            <span>Chart</span>
+          </button>
+          <button
+            className={`mobile-tab-btn ${mobilePage === 'news' ? 'mobile-tab-btn--active' : ''}`}
+            onClick={() => { setMobilePage('news'); setSidebarTab('news'); }}
+          >
+            <span className="mobile-tab-icon">📰</span>
+            <span>News</span>
+          </button>
+          <button
+            className={`mobile-tab-btn ${mobilePage === 'ai' ? 'mobile-tab-btn--active' : ''}`}
+            onClick={() => { setMobilePage('ai'); setSidebarTab('ai'); }}
+          >
+            <span className="mobile-tab-icon">⚡</span>
+            <span>Apex AI</span>
+          </button>
+        </div>
+      </nav>
 
     </div>
   );
