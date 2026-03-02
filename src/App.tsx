@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { TradingViewChart } from './components/TradingViewChart';
+import { KLineChart }       from './components/KLineChart';
 import { NewsFeed }        from './components/NewsFeed';
 import { CoinCard }        from './components/CoinCard';
 import { StatsStrip }      from './components/StatsStrip';
@@ -46,7 +46,12 @@ function useTheme() {
 export default function App() {
   const [coin, setCoin]                       = useState<Coin>('BTC');
   const [timeframe, setTimeframe]             = useState<Timeframe>('15m');
+  const [showEMA,  setShowEMA]                = useState(true);
+  const [showBOLL, setShowBOLL]               = useState(false);
+  const [showRSI,  setShowRSI]                = useState(false);
+  const [showMACD, setShowMACD]               = useState(false);
   const [mobilePage, setMobilePage]           = useState<'chart' | 'news' | 'ai'>('chart');
+  const [scrollToTime, setScrollToTime]       = useState<number | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai'>('news');
   const [sidebarOpen, setSidebarOpen]         = useState(true);
@@ -82,8 +87,10 @@ export default function App() {
     prevDay,
   });
 
-  const handleNewsClick = useCallback((_publishedAt: number, id: string) => {
+  const handleNewsClick = useCallback((publishedAt: number, id: string) => {
+    setScrollToTime(publishedAt);
     setHighlightedNewsId(id);
+    setTimeout(() => setScrollToTime(null), 500);
   }, []);
 
   const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -187,13 +194,29 @@ export default function App() {
 
         <section className="chart-area">
           <ChartToolbar
-            timeframe={timeframe}
-            onTimeframe={setTimeframe}
-            sidebarOpen={sidebarOpen}
-            onToggleSidebar={() => setSidebarOpen(o => !o)}
+            timeframe={timeframe}  onTimeframe={setTimeframe}
+            showEMA={showEMA}      onEMA={setShowEMA}
+            showBOLL={showBOLL}    onBOLL={setShowBOLL}
+            showRSI={showRSI}      onRSI={setShowRSI}
+            showMACD={showMACD}    onMACD={setShowMACD}
+            sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(o => !o)}
           />
           <div className="chart-canvas">
-            <TradingViewChart coin={coin} timeframe={timeframe} theme={theme} />
+            <KLineChart
+              candles={candles}
+              liveCandle={liveCandle}
+              coin={coin}
+              timeframe={timeframe}
+              theme={theme}
+              prevDay={prevDay}
+              showEMA={showEMA}
+              showBOLL={showBOLL}
+              showRSI={showRSI}
+              showMACD={showMACD}
+              tradeMarkers={tradeMarkers}
+              openTrades={portfolio.openTrades}
+              scrollToTime={scrollToTime}
+            />
           </div>
         </section>
       </main>
