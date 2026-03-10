@@ -16,7 +16,12 @@ import { useAllCandles }   from './hooks/useAllCandles';
 import { useAITrader }     from './hooks/useAITrader';
 import { Coin, FundingRate, Timeframe } from './types';
 
-const COINS: Coin[] = ['BTC', 'ETH', 'SOL'];
+const COINS: Coin[] = [
+  'BTC', 'ETH', 'BNB', 'XRP', 'LTC', 'TRX',
+  'SOL', 'AVAX', 'DOT', 'LINK', 'ATOM', 'NEAR', 'UNI', 'ADA',
+  'DOGE', 'SUI', 'APT', 'ARB', 'OP', 'INJ',
+  'PAXG',
+];
 
 function useClock() {
   const [now, setNow] = useState(new Date());
@@ -71,7 +76,10 @@ export default function App() {
   const fundingSOL = useFundingRate('SOL');
   const fundingRates: Record<Coin, FundingRate | null> = {
     BTC: fundingBTC, ETH: fundingETH, SOL: fundingSOL,
-    BNB: null, XRP: null, AVAX: null, DOGE: null, LINK: null, ADA: null,
+    BNB: null, XRP: null, LTC: null, TRX: null,
+    AVAX: null, DOT: null, LINK: null, ATOM: null, NEAR: null, UNI: null, ADA: null,
+    DOGE: null, SUI: null, APT: null, ARB: null, OP: null, INJ: null,
+    PAXG: null,
   };
 
   const prevDay = usePrevDayOHLC(coin);

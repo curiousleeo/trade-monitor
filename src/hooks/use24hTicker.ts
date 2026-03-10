@@ -3,21 +3,22 @@ import { Coin, TickerData } from '../types';
 
 type Tickers = Record<Coin, TickerData | null>;
 
-const ALL_COINS: Coin[] = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'AVAX', 'DOGE', 'LINK', 'ADA'];
+const ALL_COINS: Coin[] = [
+  'BTC', 'ETH', 'BNB', 'XRP', 'LTC', 'TRX',
+  'SOL', 'AVAX', 'DOT', 'LINK', 'ATOM', 'NEAR', 'UNI', 'ADA',
+  'DOGE', 'SUI', 'APT', 'ARB', 'OP', 'INJ',
+  'PAXG',
+];
 
 const STREAM = 'wss://stream.binance.com:9443/stream?streams=' +
   ALL_COINS.map(c => `${c.toLowerCase()}usdt@miniTicker`).join('/');
 
 const STREAM_TO_COIN: Record<string, Coin> = {
-  btcusdt:  'BTC',
-  ethusdt:  'ETH',
-  solusdt:  'SOL',
-  bnbusdt:  'BNB',
-  xrpusdt:  'XRP',
-  avaxusdt: 'AVAX',
-  dogeusdt: 'DOGE',
-  linkusdt: 'LINK',
-  adausdt:  'ADA',
+  btcusdt: 'BTC',  ethusdt: 'ETH',  bnbusdt: 'BNB',  xrpusdt: 'XRP',  ltcusdt: 'LTC',  trxusdt: 'TRX',
+  solusdt: 'SOL',  avaxusdt: 'AVAX', dotusdt: 'DOT',  linkusdt: 'LINK', atomusdt: 'ATOM', nearusdt: 'NEAR',
+  uniusdt: 'UNI',  adausdt: 'ADA',
+  dogeusdt: 'DOGE', suiusdt: 'SUI',  aptusdt: 'APT',  arbusdt: 'ARB',  opusdt: 'OP',    injusdt: 'INJ',
+  paxgusdt: 'PAXG',
 };
 
 const INITIAL: Tickers = Object.fromEntries(ALL_COINS.map(c => [c, null])) as Tickers;

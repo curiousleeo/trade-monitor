@@ -9,15 +9,17 @@ interface Props {
 }
 
 const COIN_COLORS: Record<Coin, string> = {
-  BTC: '#f7931a', ETH: '#627eea', SOL: '#9945ff',
-  BNB: '#f3ba2f', XRP: '#346aa9', AVAX: '#e84142',
-  DOGE: '#c2a633', LINK: '#2a5ada', ADA: '#0033ad',
+  BTC: '#f7931a', ETH: '#627eea', BNB: '#f3ba2f', XRP: '#346aa9', LTC: '#bfbbbb', TRX: '#ef0027',
+  SOL: '#9945ff', AVAX: '#e84142', DOT: '#e6007a', LINK: '#2a5ada', ATOM: '#6f4cff', NEAR: '#00c08b', UNI: '#ff007a', ADA: '#0033ad',
+  DOGE: '#c2a633', SUI: '#4da2ff', APT: '#00c2a8', ARB: '#28a0f0', OP: '#ff0420', INJ: '#00b4d8',
+  PAXG: '#d4a843',
 };
 
 const COIN_ICONS: Record<Coin, string> = {
-  BTC: '₿', ETH: 'Ξ', SOL: '◎',
-  BNB: 'B', XRP: '✕', AVAX: 'A',
-  DOGE: 'D', LINK: '⬡', ADA: '₳',
+  BTC: '₿', ETH: 'Ξ', BNB: 'B', XRP: '✕', LTC: 'Ł', TRX: 'T',
+  SOL: '◎', AVAX: 'A', DOT: '●', LINK: '⬡', ATOM: '⚛', NEAR: 'N', UNI: '🦄', ADA: '₳',
+  DOGE: 'D', SUI: 'S', APT: 'A', ARB: 'A', OP: 'O', INJ: 'I',
+  PAXG: 'Au',
 };
 
 function formatPrice(price: number, coin: Coin): string {

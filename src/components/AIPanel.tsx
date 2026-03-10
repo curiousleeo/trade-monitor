@@ -227,7 +227,12 @@ export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, active
   const totalPnlPct = (totalPnl / portfolio.startBalance) * 100;
   const progress = (portfolio.balance / 100000) * 100;
 
-  const allCoins: Coin[] = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'AVAX', 'DOGE', 'LINK', 'ADA'];
+  const allCoins: Coin[] = [
+    'BTC', 'ETH', 'BNB', 'XRP', 'LTC', 'TRX',
+    'SOL', 'AVAX', 'DOT', 'LINK', 'ATOM', 'NEAR', 'UNI', 'ADA',
+    'DOGE', 'SUI', 'APT', 'ARB', 'OP', 'INJ',
+    'PAXG',
+  ];
 
   return (
     <div className="ai-panel">

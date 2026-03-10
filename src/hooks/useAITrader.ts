@@ -25,7 +25,12 @@ import {
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const COINS: Coin[] = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'AVAX', 'DOGE', 'LINK', 'ADA'];
+const COINS: Coin[] = [
+  'BTC', 'ETH', 'BNB', 'XRP', 'LTC', 'TRX',
+  'SOL', 'AVAX', 'DOT', 'LINK', 'ATOM', 'NEAR', 'UNI', 'ADA',
+  'DOGE', 'SUI', 'APT', 'ARB', 'OP', 'INJ',
+  'PAXG',
+];
 const START_BALANCE        = 1000;
 const MIN_CONFIDENCE       = 65;     // min score to enter
 const MAX_OPEN             = 3;      // max concurrent positions (3 with 9 coins scanning)
@@ -36,7 +41,11 @@ const MAX_DD               = 0.20;   // halt if down 20% from start (tighter pro
 const MIN_ATR_PCT          = 0.003;  // skip if ATR < 0.3% of price (dead/choppy market)
 const MAX_ATR_PCT          = 0.06;   // skip if ATR > 6% of price (flash crash / manipulation)
 // High-correlation pairs — never hold both in same direction simultaneously
-const CORRELATED_PAIRS: [Coin, Coin][] = [['BTC', 'ETH']];
+const CORRELATED_PAIRS: [Coin, Coin][] = [
+  ['BTC', 'ETH'],
+  ['ARB', 'OP'],   // L2s move together
+  ['APT', 'SUI'],  // Move competitors
+];
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -164,9 +173,14 @@ export function useAITrader({
     allLoaded.current = true;
     runPredictions(activeCandleCount.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allCandles.BTC?.length, allCandles.ETH?.length, allCandles.SOL?.length,
-      allCandles.BNB?.length, allCandles.XRP?.length, allCandles.AVAX?.length,
-      allCandles.DOGE?.length, allCandles.LINK?.length, allCandles.ADA?.length]);
+  }, [allCandles.BTC?.length,  allCandles.ETH?.length,  allCandles.BNB?.length,
+      allCandles.XRP?.length,  allCandles.LTC?.length,  allCandles.TRX?.length,
+      allCandles.SOL?.length,  allCandles.AVAX?.length, allCandles.DOT?.length,
+      allCandles.LINK?.length, allCandles.ATOM?.length, allCandles.NEAR?.length,
+      allCandles.UNI?.length,  allCandles.ADA?.length,
+      allCandles.DOGE?.length, allCandles.SUI?.length,  allCandles.APT?.length,
+      allCandles.ARB?.length,  allCandles.OP?.length,   allCandles.INJ?.length,
+      allCandles.PAXG?.length]);
 
   // TF matrix update (follows same cadence as active candles, cached)
   const lastTFCandle = useRef(0);
@@ -353,7 +367,14 @@ export function useAITrader({
     }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tickers.BTC?.price, tickers.ETH?.price, tickers.SOL?.price]);
+  }, [tickers.BTC?.price,  tickers.ETH?.price,  tickers.BNB?.price,
+      tickers.XRP?.price,  tickers.LTC?.price,  tickers.TRX?.price,
+      tickers.SOL?.price,  tickers.AVAX?.price, tickers.DOT?.price,
+      tickers.LINK?.price, tickers.ATOM?.price, tickers.NEAR?.price,
+      tickers.UNI?.price,  tickers.ADA?.price,
+      tickers.DOGE?.price, tickers.SUI?.price,  tickers.APT?.price,
+      tickers.ARB?.price,  tickers.OP?.price,   tickers.INJ?.price,
+      tickers.PAXG?.price]);
 
   // ─── Trade markers for chart ────────────────────────────────────────────
 

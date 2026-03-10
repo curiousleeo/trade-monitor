@@ -8,18 +8,19 @@ import { Candle, Coin, Timeframe } from '../types';
 
 export type AllCandles = Record<Coin, Candle[]>;
 
-const TRADE_COINS: Coin[] = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'AVAX', 'DOGE', 'LINK', 'ADA'];
+const TRADE_COINS: Coin[] = [
+  'BTC', 'ETH', 'BNB', 'XRP', 'LTC', 'TRX',
+  'SOL', 'AVAX', 'DOT', 'LINK', 'ATOM', 'NEAR', 'UNI', 'ADA',
+  'DOGE', 'SUI', 'APT', 'ARB', 'OP', 'INJ',
+  'PAXG',
+];
 
 const SYMBOLS: Record<Coin, string> = {
-  BTC:  'BTCUSDT',
-  ETH:  'ETHUSDT',
-  SOL:  'SOLUSDT',
-  BNB:  'BNBUSDT',
-  XRP:  'XRPUSDT',
-  AVAX: 'AVAXUSDT',
-  DOGE: 'DOGEUSDT',
-  LINK: 'LINKUSDT',
-  ADA:  'ADAUSDT',
+  BTC: 'BTCUSDT',  ETH: 'ETHUSDT',  BNB: 'BNBUSDT',  XRP: 'XRPUSDT',  LTC: 'LTCUSDT',  TRX: 'TRXUSDT',
+  SOL: 'SOLUSDT',  AVAX: 'AVAXUSDT', DOT: 'DOTUSDT',  LINK: 'LINKUSDT', ATOM: 'ATOMUSDT', NEAR: 'NEARUSDT',
+  UNI: 'UNIUSDT',  ADA: 'ADAUSDT',
+  DOGE: 'DOGEUSDT', SUI: 'SUIUSDT',  APT: 'APTUSDT',  ARB: 'ARBUSDT',  OP: 'OPUSDT',    INJ: 'INJUSDT',
+  PAXG: 'PAXGUSDT',
 };
 
 const REFRESH_MS = 3 * 60 * 1000; // 3 minutes

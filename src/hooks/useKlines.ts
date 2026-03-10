@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Candle, Coin, Timeframe } from '../types';
 
 const SYMBOLS: Record<Coin, string> = {
-  BTC: 'btcusdt', ETH: 'ethusdt', SOL: 'solusdt',
-  BNB: 'bnbusdt', XRP: 'xrpusdt', AVAX: 'avaxusdt',
-  DOGE: 'dogeusdt', LINK: 'linkusdt', ADA: 'adausdt',
+  BTC: 'btcusdt',  ETH: 'ethusdt',  BNB: 'bnbusdt',  XRP: 'xrpusdt',  LTC: 'ltcusdt',  TRX: 'trxusdt',
+  SOL: 'solusdt',  AVAX: 'avaxusdt', DOT: 'dotusdt',  LINK: 'linkusdt', ATOM: 'atomusdt', NEAR: 'nearusdt',
+  UNI: 'uniusdt',  ADA: 'adausdt',
+  DOGE: 'dogeusdt', SUI: 'suiusdt',  APT: 'aptusdt',  ARB: 'arbusdt',  OP: 'opusdt',    INJ: 'injusdt',
+  PAXG: 'paxgusdt',
 };
 
 function parseRestKline(k: string[]): Candle {
