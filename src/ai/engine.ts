@@ -288,14 +288,14 @@ export function generatePrediction(
 
   let direction: PredictionDirection;
   let confidence: number;
-  // Raised threshold to 68/32 — only enter on stronger, more aligned setups
-  if (composite50 > 68) {
+  // Threshold 62/38: achievable even when funding/prevDay signals are null (common for most coins)
+  if (composite50 > 62) {
     direction = 'LONG';
-    // Map composite50 [68, 100] → confidence [65, 95]
-    confidence = 65 + (composite50 - 68) * (30 / 32);
-  } else if (composite50 < 32) {
+    // Map composite50 [62, 100] → confidence [65, 95]
+    confidence = 65 + (composite50 - 62) * (30 / 38);
+  } else if (composite50 < 38) {
     direction = 'SHORT';
-    confidence = 65 + (32 - composite50) * (30 / 32);
+    confidence = 65 + (38 - composite50) * (30 / 38);
   } else {
     direction = 'NEUTRAL';
     confidence = 50;

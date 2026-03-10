@@ -33,13 +33,13 @@ const COINS: Coin[] = [
 ];
 const START_BALANCE        = 1000;
 const MIN_CONFIDENCE       = 65;     // min score to enter
-const MAX_OPEN             = 3;      // max concurrent positions (3 with 9 coins scanning)
-const PRED_CANDLE_GAP      = 5;      // predict once per 5 candles
-const POSTSL_COOLDOWN      = 4;      // candles to wait after SL before re-entering same coin
+const MAX_OPEN             = 4;      // max concurrent positions (4 with 21 coins scanning)
+const PRED_CANDLE_GAP      = 2;      // predict every 2 candles (was 5 — too slow on 1h/4h)
+const POSTSL_COOLDOWN      = 3;      // candles to wait after SL before re-entering same coin
 const ENTRY_GAP_CANDLES    = 1;      // min candles between any two new entries
-const MAX_DD               = 0.20;   // halt if down 20% from start (tighter protection)
-const MIN_ATR_PCT          = 0.003;  // skip if ATR < 0.3% of price (dead/choppy market)
-const MAX_ATR_PCT          = 0.06;   // skip if ATR > 6% of price (flash crash / manipulation)
+const MAX_DD               = 0.20;   // halt if down 20% from start
+const MIN_ATR_PCT          = 0.002;  // skip if ATR < 0.2% (was 0.3% — blocked PAXG/low-vol coins)
+const MAX_ATR_PCT          = 0.06;   // skip if ATR > 6% (flash crash / manipulation)
 // High-correlation pairs — never hold both in same direction simultaneously
 const CORRELATED_PAIRS: [Coin, Coin][] = [
   ['BTC', 'ETH'],
