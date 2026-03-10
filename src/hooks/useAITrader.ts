@@ -25,7 +25,7 @@ import {
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const COINS: Coin[] = ['BTC', 'ETH', 'SOL'];
+const COINS: Coin[] = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'AVAX', 'DOGE', 'LINK', 'ADA'];
 const START_BALANCE        = 1000;
 const RISK_PCT             = 0.02;   // 2% risk per trade
 const MIN_CONFIDENCE       = 65;     // min score to enter
@@ -85,7 +85,9 @@ export function useAITrader({
   // Portfolio state — only trades + balance (predictions are ephemeral)
   const [portfolio,    setPortfolio]    = useState<StoredPortfolio>(loadPortfolio);
   const [closedTrades, setClosedTrades] = useState<Trade[]>(loadHistory);
-  const [predictions,  setPredictions]  = useState<Record<Coin, Prediction | null>>({ BTC: null, ETH: null, SOL: null });
+  const [predictions,  setPredictions]  = useState<Record<Coin, Prediction | null>>(
+    () => Object.fromEntries(COINS.map(c => [c, null])) as Record<Coin, Prediction | null>
+  );
   const [tfMatrix,     setTfMatrix]     = useState<TFBias[]>([]);
 
   // Refs for rate-limiting (mutated without triggering re-renders)
@@ -115,7 +117,7 @@ export function useAITrader({
   // ─── Run predictions (rate-limited) ────────────────────────────────────
 
   const runPredictions = useCallback((candleCount: number) => {
-    const next: Record<Coin, Prediction | null> = { BTC: null, ETH: null, SOL: null };
+    const next = Object.fromEntries(COINS.map(c => [c, null])) as Record<Coin, Prediction | null>;
 
     COINS.forEach(coin => {
       if (!shouldPredict(coin, candleCount)) {
@@ -159,7 +161,9 @@ export function useAITrader({
     allLoaded.current = true;
     runPredictions(activeCandleCount.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allCandles.BTC.length, allCandles.ETH.length, allCandles.SOL.length]);
+  }, [allCandles.BTC?.length, allCandles.ETH?.length, allCandles.SOL?.length,
+      allCandles.BNB?.length, allCandles.XRP?.length, allCandles.AVAX?.length,
+      allCandles.DOGE?.length, allCandles.LINK?.length, allCandles.ADA?.length]);
 
   // TF matrix update (follows same cadence as active candles, cached)
   const lastTFCandle = useRef(0);
@@ -226,11 +230,13 @@ export function useAITrader({
       onTradeOpened(next, trade);  // ← only write to storage here
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [predictions]);
+  }, [predictions, tickers]);
 
   // ─── Monitor positions on price ticks (NO storage writes here) ─────────
 
-  const prevPrices = useRef<Record<Coin, number | undefined>>({ BTC: undefined, ETH: undefined, SOL: undefined });
+  const prevPrices = useRef<Record<Coin, number | undefined>>(
+    Object.fromEntries(COINS.map(c => [c, undefined])) as Record<Coin, number | undefined>
+  );
 
   useEffect(() => {
     const port = portfolioRef.current;
@@ -350,7 +356,7 @@ export function useAITrader({
     const fresh: StoredPortfolio = { balance: START_BALANCE, startBalance: START_BALANCE, openTrades: [] };
     setPortfolio(fresh);
     setClosedTrades([]);
-    setPredictions({ BTC: null, ETH: null, SOL: null });
+    setPredictions(Object.fromEntries(COINS.map(c => [c, null])) as Record<Coin, Prediction | null>);
     lastPredCandle.current        = {};
     slCooldownUntilCandle.current = {};
     lastEntryCandle.current       = 0;

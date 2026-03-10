@@ -10,9 +10,9 @@ interface Props {
 }
 
 const COIN_COLORS: Record<Coin, string> = {
-  BTC: '#f7931a',
-  ETH: '#627eea',
-  SOL: '#9945ff',
+  BTC: '#f7931a', ETH: '#627eea', SOL: '#9945ff',
+  BNB: '#f3ba2f', XRP: '#346aa9', AVAX: '#e84142',
+  DOGE: '#c2a633', LINK: '#2a5ada', ADA: '#0033ad',
 };
 
 export function Toast({ coin, direction, alertPrice, currentPrice, onClose }: Props) {

@@ -14,7 +14,7 @@ import { usePrevDayOHLC }  from './hooks/usePrevDayOHLC';
 import { use24hTicker }    from './hooks/use24hTicker';
 import { useAllCandles }   from './hooks/useAllCandles';
 import { useAITrader }     from './hooks/useAITrader';
-import { Coin, Timeframe } from './types';
+import { Coin, FundingRate, Timeframe } from './types';
 
 const COINS: Coin[] = ['BTC', 'ETH', 'SOL'];
 
@@ -69,7 +69,10 @@ export default function App() {
   const fundingBTC = useFundingRate('BTC');
   const fundingETH = useFundingRate('ETH');
   const fundingSOL = useFundingRate('SOL');
-  const fundingRates = { BTC: fundingBTC, ETH: fundingETH, SOL: fundingSOL };
+  const fundingRates: Record<Coin, FundingRate | null> = {
+    BTC: fundingBTC, ETH: fundingETH, SOL: fundingSOL,
+    BNB: null, XRP: null, AVAX: null, DOGE: null, LINK: null, ADA: null,
+  };
 
   const prevDay = usePrevDayOHLC(coin);
   const allCandles = useAllCandles(timeframe);

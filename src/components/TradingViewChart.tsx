@@ -2,9 +2,9 @@ import { useEffect, useRef } from 'react';
 import { Coin, Timeframe } from '../types';
 
 const SYMBOL_MAP: Record<Coin, string> = {
-  BTC: 'BINANCE:BTCUSDT',
-  ETH: 'BINANCE:ETHUSDT',
-  SOL: 'BINANCE:SOLUSDT',
+  BTC: 'BINANCE:BTCUSDT', ETH: 'BINANCE:ETHUSDT', SOL: 'BINANCE:SOLUSDT',
+  BNB: 'BINANCE:BNBUSDT', XRP: 'BINANCE:XRPUSDT', AVAX: 'BINANCE:AVAXUSDT',
+  DOGE: 'BINANCE:DOGEUSDT', LINK: 'BINANCE:LINKUSDT', ADA: 'BINANCE:ADAUSDT',
 };
 
 const TF_MAP: Record<Timeframe, string> = {

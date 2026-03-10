@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Coin, FundingRate } from '../types';
 
 const SYMBOLS: Record<Coin, string> = {
-  BTC: 'BTCUSDT',
-  ETH: 'ETHUSDT',
-  SOL: 'SOLUSDT',
+  BTC: 'BTCUSDT', ETH: 'ETHUSDT', SOL: 'SOLUSDT',
+  BNB: 'BNBUSDT', XRP: 'XRPUSDT', AVAX: 'AVAXUSDT',
+  DOGE: 'DOGEUSDT', LINK: 'LINKUSDT', ADA: 'ADAUSDT',
 };
 
 export function useFundingRate(coin: Coin) {

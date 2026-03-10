@@ -3,16 +3,27 @@ import { Coin, TickerData } from '../types';
 
 type Tickers = Record<Coin, TickerData | null>;
 
-const STREAM = 'wss://stream.binance.com:9443/stream?streams=btcusdt@miniTicker/ethusdt@miniTicker/solusdt@miniTicker';
+const ALL_COINS: Coin[] = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'AVAX', 'DOGE', 'LINK', 'ADA'];
+
+const STREAM = 'wss://stream.binance.com:9443/stream?streams=' +
+  ALL_COINS.map(c => `${c.toLowerCase()}usdt@miniTicker`).join('/');
 
 const STREAM_TO_COIN: Record<string, Coin> = {
-  btcusdt: 'BTC',
-  ethusdt: 'ETH',
-  solusdt: 'SOL',
+  btcusdt:  'BTC',
+  ethusdt:  'ETH',
+  solusdt:  'SOL',
+  bnbusdt:  'BNB',
+  xrpusdt:  'XRP',
+  avaxusdt: 'AVAX',
+  dogeusdt: 'DOGE',
+  linkusdt: 'LINK',
+  adausdt:  'ADA',
 };
 
+const INITIAL: Tickers = Object.fromEntries(ALL_COINS.map(c => [c, null])) as Tickers;
+
 export function use24hTicker(): Tickers {
-  const [tickers, setTickers] = useState<Tickers>({ BTC: null, ETH: null, SOL: null });
+  const [tickers, setTickers] = useState<Tickers>(INITIAL);
   const wsRef           = useRef<WebSocket | null>(null);
   const reconnectTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectDelay  = useRef(1000);

@@ -1,15 +1,27 @@
 /**
- * Fetches 100 REST candles for all 3 coins on the current timeframe.
- * Refreshes every 3 minutes. Used by AI trader for non-active coins.
+ * Fetches 100 REST candles for all trade coins on the current timeframe.
+ * Refreshes every 3 minutes. Used by AI trader for all coins.
  */
 
 import { useEffect, useState, useRef } from 'react';
 import { Candle, Coin, Timeframe } from '../types';
 
-type AllCandles = Record<Coin, Candle[]>;
+export type AllCandles = Record<Coin, Candle[]>;
 
-const COINS: Coin[] = ['BTC', 'ETH', 'SOL'];
-const SYMBOLS: Record<Coin, string> = { BTC: 'BTCUSDT', ETH: 'ETHUSDT', SOL: 'SOLUSDT' };
+const TRADE_COINS: Coin[] = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'AVAX', 'DOGE', 'LINK', 'ADA'];
+
+const SYMBOLS: Record<Coin, string> = {
+  BTC:  'BTCUSDT',
+  ETH:  'ETHUSDT',
+  SOL:  'SOLUSDT',
+  BNB:  'BNBUSDT',
+  XRP:  'XRPUSDT',
+  AVAX: 'AVAXUSDT',
+  DOGE: 'DOGEUSDT',
+  LINK: 'LINKUSDT',
+  ADA:  'ADAUSDT',
+};
+
 const REFRESH_MS = 3 * 60 * 1000; // 3 minutes
 
 function parseRest(raw: unknown[][]): Candle[] {
@@ -31,18 +43,19 @@ async function fetchCandles(coin: Coin, tf: Timeframe): Promise<Candle[]> {
   return parseRest(data as unknown[][]);
 }
 
+const EMPTY: AllCandles = Object.fromEntries(TRADE_COINS.map(c => [c, []])) as unknown as AllCandles;
+
 export function useAllCandles(timeframe: Timeframe): AllCandles {
-  const [all, setAll] = useState<AllCandles>({ BTC: [], ETH: [], SOL: [] });
+  const [all, setAll] = useState<AllCandles>(EMPTY);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      const results = await Promise.all(COINS.map(c => fetchCandles(c, timeframe)));
+      const results = await Promise.all(TRADE_COINS.map(c => fetchCandles(c, timeframe)));
       if (cancelled) return;
-      const next: AllCandles = { BTC: [], ETH: [], SOL: [] };
-      COINS.forEach((c, i) => { next[c] = results[i]; });
+      const next = Object.fromEntries(TRADE_COINS.map((c, i) => [c, results[i]])) as unknown as AllCandles;
       setAll(next);
       timerRef.current = setTimeout(load, REFRESH_MS);
     }

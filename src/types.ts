@@ -43,7 +43,7 @@ export interface TickerData {
 }
 
 export type Sentiment = 'bullish' | 'bearish' | 'neutral';
-export type Coin = 'BTC' | 'ETH' | 'SOL';
+export type Coin = 'BTC' | 'ETH' | 'SOL' | 'BNB' | 'XRP' | 'AVAX' | 'DOGE' | 'LINK' | 'ADA';
 export type Timeframe = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
 export type TradeDirection = 'LONG' | 'SHORT';
 export type TradeStatus = 'OPEN' | 'CLOSED_TP' | 'CLOSED_SL' | 'CLOSED_MANUAL';

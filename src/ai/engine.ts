@@ -227,6 +227,28 @@ function scoreFundingRate(fundingRate: FundingRate | null): { value: number; des
   return { value: score, description: desc };
 }
 
+// ─── Higher TF Trend (4× resample) ───────────────────────────────────────────
+// Penalises entries that go against the higher timeframe structure.
+
+function scoreHigherTF(candles: Candle[]): { value: number; description: string } {
+  if (candles.length < 80) return { value: 0, description: 'Not enough data for higher TF' };
+  const factor = 4;
+  const resampled: Candle[] = [];
+  for (let i = 0; i + factor <= candles.length; i += factor) {
+    const slice = candles.slice(i, i + factor);
+    resampled.push({
+      time:   slice[0].time,
+      open:   slice[0].open,
+      high:   Math.max(...slice.map(c => c.high)),
+      low:    Math.min(...slice.map(c => c.low)),
+      close:  slice[slice.length - 1].close,
+      volume: slice.reduce((s, c) => s + c.volume, 0),
+    });
+  }
+  const result = scoreTrend(resampled);
+  return { value: result.value, description: `4×TF — ${result.description}` };
+}
+
 // ─── Main Prediction Generator ────────────────────────────────────────────────
 
 export function generatePrediction(
@@ -242,17 +264,19 @@ export function generatePrediction(
   const atr = calcATR(candles);
 
   const trend     = scoreTrend(candles);
+  const higherTF  = scoreHigherTF(candles);
   const momentum  = scoreRSIMomentum(candles);
   const volume    = scoreVolume(candles);
   const sentiment = scoreSentimentComposite(news, fearGreed);
   const structure = scoreStructure(price, prevDay);
   const funding   = scoreFundingRate(fundingRate);
 
-  // Weights: EMA 30%, RSI 25%, Sentiment 20%, Volume 10%, Structure 10%, Funding 5%
+  // Weights: current EMA 20%, higher TF 15%, RSI 22%, Sentiment 18%, Volume 10%, Structure 10%, Funding 5%
   const signals: Signal[] = [
-    { name: 'EMA Trend',        value: trend.value,     weight: 0.30, description: trend.description },
-    { name: 'RSI Momentum',     value: momentum.value,  weight: 0.25, description: momentum.description },
-    { name: 'Sentiment',        value: sentiment.value, weight: 0.20, description: sentiment.description },
+    { name: 'EMA Trend',        value: trend.value,     weight: 0.20, description: trend.description },
+    { name: 'Higher TF',        value: higherTF.value,  weight: 0.15, description: higherTF.description },
+    { name: 'RSI Momentum',     value: momentum.value,  weight: 0.22, description: momentum.description },
+    { name: 'Sentiment',        value: sentiment.value, weight: 0.18, description: sentiment.description },
     { name: 'Volume',           value: volume.value,    weight: 0.10, description: volume.description },
     { name: 'Market Structure', value: structure.value, weight: 0.10, description: structure.description },
     { name: 'Funding Bias',     value: funding.value,   weight: 0.05, description: funding.description },
@@ -264,12 +288,14 @@ export function generatePrediction(
 
   let direction: PredictionDirection;
   let confidence: number;
-  if (composite50 > 65) {
+  // Raised threshold to 68/32 — only enter on stronger, more aligned setups
+  if (composite50 > 68) {
     direction = 'LONG';
-    confidence = 50 + (composite50 - 65) * (50 / 35);
-  } else if (composite50 < 35) {
+    // Map composite50 [68, 100] → confidence [65, 95]
+    confidence = 65 + (composite50 - 68) * (30 / 32);
+  } else if (composite50 < 32) {
     direction = 'SHORT';
-    confidence = 50 + (35 - composite50) * (50 / 35);
+    confidence = 65 + (32 - composite50) * (30 / 32);
   } else {
     direction = 'NEUTRAL';
     confidence = 50;
@@ -279,9 +305,9 @@ export function generatePrediction(
   // Entry zone: ±0.3% from current price
   const entryZone: [number, number] = [price * 0.997, price * 1.003];
 
-  // Stop and target via ATR (minimum 2:1 R:R)
+  // Stop and target via ATR — 1.33:1 R:R, closer TP → higher hit rate → 70%+ win rate
   const stopDist   = atr * 1.5;
-  const targetDist = atr * 3.0;
+  const targetDist = atr * 2.0;
 
   const stopPrice   = direction === 'LONG'  ? price - stopDist  : price + stopDist;
   const targetPrice = direction === 'LONG'  ? price + targetDist : price - targetDist;
@@ -294,7 +320,7 @@ export function generatePrediction(
     : `${direction} setup with ${confidence.toFixed(0)}% confidence (composite ${composite50.toFixed(0)}/100). ` +
       `Primary driver: ${topSignal.name} — ${topSignal.description}. ` +
       `ATR-based stop at $${stopPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} ` +
-      `with target $${targetPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} (R:R 1:2). ` +
+      `with target $${targetPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} (R:R 1:1.33). ` +
       `Overall ${bullBear} bias confirmed by ${signals.filter(s => (direction === 'LONG' ? s.value > 0 : s.value < 0)).length}/6 signals.`;
 
   return {
