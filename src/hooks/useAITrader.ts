@@ -27,13 +27,16 @@ import {
 
 const COINS: Coin[] = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'AVAX', 'DOGE', 'LINK', 'ADA'];
 const START_BALANCE        = 1000;
-const RISK_PCT             = 0.02;   // 2% risk per trade
 const MIN_CONFIDENCE       = 65;     // min score to enter
-const MAX_OPEN             = 2;      // max concurrent positions
-const PRED_CANDLE_GAP      = 5;      // predict once per 5 candles (not every close)
+const MAX_OPEN             = 3;      // max concurrent positions (3 with 9 coins scanning)
+const PRED_CANDLE_GAP      = 5;      // predict once per 5 candles
 const POSTSL_COOLDOWN      = 4;      // candles to wait after SL before re-entering same coin
-const ENTRY_GAP_CANDLES    = 2;      // min candles between any two entries (all coins)
-const MAX_DD               = 0.25;   // halt if down 25% from start
+const ENTRY_GAP_CANDLES    = 1;      // min candles between any two new entries
+const MAX_DD               = 0.20;   // halt if down 20% from start (tighter protection)
+const MIN_ATR_PCT          = 0.003;  // skip if ATR < 0.3% of price (dead/choppy market)
+const MAX_ATR_PCT          = 0.06;   // skip if ATR > 6% of price (flash crash / manipulation)
+// High-correlation pairs — never hold both in same direction simultaneously
+const CORRELATED_PAIRS: [Coin, Coin][] = [['BTC', 'ETH']];
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -199,14 +202,29 @@ export function useAITrader({
       const ticker = tickers[coin];
       if (!ticker) return;
 
-      const price      = ticker.price;
-      const riskDollars = port.balance * RISK_PCT;
+      const price = ticker.price;
+
+      // Volatility gate: skip choppy or panic markets
+      const atrPct = pred.atr / price;
+      if (atrPct < MIN_ATR_PCT || atrPct > MAX_ATR_PCT) return;
+
+      // Correlation gate: don't double up on highly correlated coins
+      const hasCorrelated = CORRELATED_PAIRS.some(([a, b]) => {
+        if (coin !== a && coin !== b) return false;
+        const other = coin === a ? b : a;
+        return port.openTrades.some(t => t.coin === other && t.direction === pred.direction);
+      });
+      if (hasCorrelated) return;
+
+      // Dynamic risk: scale with confidence — 1% weak, 2% normal, 3% strong
+      const riskPct    = pred.confidence >= 80 ? 0.03 : pred.confidence >= 72 ? 0.02 : 0.01;
+      const riskDollars = port.balance * riskPct;
       const stopDist   = Math.abs(price - pred.stopPrice);
       if (stopDist === 0) return;
 
       const coinUnits  = riskDollars / stopDist;
       const size       = coinUnits * price;
-      if (size < 1 || size > port.balance * 0.5) return; // sanity: max 50% in one trade
+      if (size < 1 || size > port.balance * 0.4) return; // sanity: max 40% in one trade
 
       const trade: Trade = {
         id:           uid(),
@@ -262,21 +280,28 @@ export function useAITrader({
       const hitSL  = isLong ? price <= trade.stopLoss   : price >= trade.stopLoss;
 
       if (!hitTP && !hitSL) {
-        // Breakeven logic: when 1R in profit, move stop to entry price (risk-free)
-        const riskDist = Math.abs(trade.entryPrice - trade.stopLoss);
-        const stopAlreadyAtBE = isLong
-          ? trade.stopLoss >= trade.entryPrice
-          : trade.stopLoss <= trade.entryPrice;
-
-        if (!stopAlreadyAtBE && riskDist > 0) {
+        // Trailing stop: ratchet stop loss up (LONG) or down (SHORT) as price moves
+        // Derived ATR from original TP distance (TP = entry ± ATR×3)
+        const riskDist  = Math.abs(trade.entryPrice - trade.stopLoss);
+        if (riskDist > 0) {
           const unrealizedR = isLong
             ? (price - trade.entryPrice) / riskDist
             : (trade.entryPrice - price) / riskDist;
 
           if (unrealizedR >= 1.0) {
-            remaining.push({ ...trade, stopLoss: trade.entryPrice });
-            tradeChanged = true;
-            return;
+            // Trail at 1.5×ATR behind price — but never worse than entry (always risk-free)
+            const tradeATR = Math.abs(trade.entryPrice - trade.takeProfit) / 3.0;
+            const trailDist = tradeATR * 1.5;
+            const newSL = isLong
+              ? Math.max(trade.entryPrice, price - trailDist)   // floor = breakeven
+              : Math.min(trade.entryPrice, price + trailDist);   // ceiling = breakeven
+
+            const improved = isLong ? newSL > trade.stopLoss : newSL < trade.stopLoss;
+            if (improved) {
+              remaining.push({ ...trade, stopLoss: newSL });
+              tradeChanged = true;
+              return;
+            }
           }
         }
 

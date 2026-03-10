@@ -305,9 +305,9 @@ export function generatePrediction(
   // Entry zone: ±0.3% from current price
   const entryZone: [number, number] = [price * 0.997, price * 1.003];
 
-  // Stop and target via ATR — 1.33:1 R:R, closer TP → higher hit rate → 70%+ win rate
+  // SL at 1.5×ATR, TP at 3×ATR (1:2 R:R) — trailing stop captures moves beyond TP
   const stopDist   = atr * 1.5;
-  const targetDist = atr * 2.0;
+  const targetDist = atr * 3.0;
 
   const stopPrice   = direction === 'LONG'  ? price - stopDist  : price + stopDist;
   const targetPrice = direction === 'LONG'  ? price + targetDist : price - targetDist;
@@ -320,7 +320,7 @@ export function generatePrediction(
     : `${direction} setup with ${confidence.toFixed(0)}% confidence (composite ${composite50.toFixed(0)}/100). ` +
       `Primary driver: ${topSignal.name} — ${topSignal.description}. ` +
       `ATR-based stop at $${stopPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} ` +
-      `with target $${targetPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} (R:R 1:1.33). ` +
+      `with target $${targetPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} (R:R 1:2, trailing stop active). ` +
       `Overall ${bullBear} bias confirmed by ${signals.filter(s => (direction === 'LONG' ? s.value > 0 : s.value < 0)).length}/6 signals.`;
 
   return {

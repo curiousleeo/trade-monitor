@@ -36,7 +36,7 @@ function parseRest(raw: unknown[][]): Candle[] {
 }
 
 async function fetchCandles(coin: Coin, tf: Timeframe): Promise<Candle[]> {
-  const url = `https://api.binance.com/api/v3/klines?symbol=${SYMBOLS[coin]}&interval=${tf}&limit=100`;
+  const url = `https://api.binance.com/api/v3/klines?symbol=${SYMBOLS[coin]}&interval=${tf}&limit=500`;
   const res = await fetch(url);
   if (!res.ok) return [];
   const data = await res.json();
