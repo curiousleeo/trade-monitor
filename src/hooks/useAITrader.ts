@@ -62,6 +62,7 @@ export interface AITraderResult {
   tfMatrix:       TFBias[];
   tradeMarkers:   TradeMarkerData[];
   resetPortfolio: () => void;
+  forceEntry:     (coin: Coin) => void;
 }
 
 interface Props {
@@ -248,8 +249,10 @@ export function useAITrader({
       if (stopDist === 0) return;
 
       const coinUnits = riskDollars / stopDist;
-      const size      = coinUnits * price;
-      if (size < 1 || size > port.balance * 0.4) return; // sanity: max 40% in one trade
+      const rawSize   = coinUnits * price;
+      // Cap at 95% of balance — never reject, just size down to what we have
+      const size      = Math.min(rawSize, port.balance * 0.95);
+      if (size < 1) return;
 
       tradesToEnter.push({
         id:           uid(),
@@ -409,6 +412,48 @@ export function useAITrader({
     }),
   ];
 
+  // ─── Force Entry (bypasses cooldowns — manual trigger) ─────────────────
+
+  const forceEntry = useCallback((coin: Coin) => {
+    const port = portfolioRef.current;
+    const pred = predictions[coin];
+    if (!pred || pred.direction === 'NEUTRAL') return;
+    if (port.openTrades.some(t => t.coin === coin)) return; // already open
+
+    const ticker = tickers[coin];
+    if (!ticker) return;
+    const price = ticker.price;
+
+    const riskPct     = pred.confidence >= 80 ? 0.03 : pred.confidence >= 72 ? 0.02 : 0.01;
+    const riskDollars = port.balance * riskPct;
+    const stopDist    = Math.abs(price - pred.stopPrice);
+    if (stopDist === 0) return;
+
+    const coinUnits = riskDollars / stopDist;
+    const rawSize   = coinUnits * price;
+    const size      = Math.min(rawSize, port.balance * 0.95);
+    if (size < 1) return;
+
+    const trade: Trade = {
+      id:           uid(),
+      predictionId: pred.id,
+      coin,
+      direction:    pred.direction as 'LONG' | 'SHORT',
+      entryPrice:   price,
+      entryTime:    Date.now(),
+      stopLoss:     pred.stopPrice,
+      takeProfit:   pred.targetPrice,
+      size,
+      status:       'OPEN',
+    };
+
+    const next: StoredPortfolio = { ...port, openTrades: [...port.openTrades, trade] };
+    lastEntryCandle.current = activeCandleCount.current;
+    setPortfolio(next);
+    onTradeOpened(next, trade);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [predictions, tickers]);
+
   // ─── Reset ─────────────────────────────────────────────────────────────
 
   const resetPortfolio = useCallback(() => {
@@ -423,5 +468,5 @@ export function useAITrader({
     resetStorage();
   }, []);
 
-  return { portfolio, closedTrades, predictions, tfMatrix, tradeMarkers, resetPortfolio };
+  return { portfolio, closedTrades, predictions, tfMatrix, tradeMarkers, resetPortfolio, forceEntry };
 }

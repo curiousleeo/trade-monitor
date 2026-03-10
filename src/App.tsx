@@ -86,7 +86,7 @@ export default function App() {
   const allCandles = useAllCandles(timeframe);
 
   // ── AI Trader ──────────────────────────────────────────────────────────
-  const { portfolio, closedTrades, predictions, tfMatrix, tradeMarkers, resetPortfolio } = useAITrader({
+  const { portfolio, closedTrades, predictions, tfMatrix, tradeMarkers, resetPortfolio, forceEntry } = useAITrader({
     allCandles,
     activeCandles:   candles,
     activeCoin:      coin,
@@ -199,6 +199,7 @@ export default function App() {
               activeCoin={coin}
               livePrice={tickers[coin]?.price ?? null}
               onReset={resetPortfolio}
+              onForceEntry={forceEntry}
             />
           )}
         </aside>

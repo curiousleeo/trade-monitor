@@ -10,6 +10,7 @@ interface Props {
   activeCoin: Coin;
   livePrice: number | null;
   onReset: () => void;
+  onForceEntry: (coin: Coin) => void;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -219,7 +220,7 @@ function TradeCard({ trade, currentPrice }: { trade: Trade; currentPrice: number
 
 // ─── Main AIPanel ─────────────────────────────────────────────────────────────
 
-export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, activeCoin, livePrice, onReset }: Props) {
+export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, activeCoin, livePrice, onReset, onForceEntry }: Props) {
   const [subTab, setSubTab] = useState<'signals' | 'trades'>('signals');
   const pred = predictions[activeCoin];
 
@@ -268,6 +269,15 @@ export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, active
           </div>
 
           <PredictionCard pred={pred} coin={activeCoin} />
+
+          {pred && pred.direction !== 'NEUTRAL' && !portfolio.openTrades.some(t => t.coin === activeCoin) && (
+            <button
+              className="force-entry-btn"
+              onClick={() => onForceEntry(activeCoin)}
+            >
+              ⚡ FORCE ENTRY — {pred.direction} {activeCoin}
+            </button>
+          )}
 
           {tfMatrix.length > 0 && <TFMatrix matrix={tfMatrix} />}
         </div>

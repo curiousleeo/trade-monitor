@@ -580,6 +580,21 @@ body {
 .ai-signals-tab::-webkit-scrollbar { width: 4px; }
 .ai-signals-tab::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
+/* Force Entry button */
+.force-entry-btn {
+  width: 100%; padding: 10px 0;
+  background: linear-gradient(135deg, #1a3a1a, #0d2b0d);
+  border: 1px solid #2ecc40;
+  border-radius: 6px;
+  color: #2ecc40;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+  cursor: pointer; transition: all 0.15s;
+}
+.force-entry-btn:hover {
+  background: linear-gradient(135deg, #2ecc40, #27ae60);
+  color: #000; border-color: transparent;
+}
+
 /* Trades tab */
 .ai-trades-tab {
   flex: 1; overflow-y: auto; overflow-x: hidden;
