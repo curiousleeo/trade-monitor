@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Coin, Prediction, TFBias, Trade } from '../types';
+import { Coin, Prediction, TFBias, TickerData, Trade } from '../types';
 import { StoredPortfolio } from '../lib/db';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
   predictions: Record<Coin, Prediction | null>;
   tfMatrix: TFBias[];
   activeCoin: Coin;
-  livePrice: number | null;
+  tickers: Record<Coin, TickerData | null>;
   onReset: () => void;
   onForceEntry: (coin: Coin) => void;
 }
@@ -221,13 +221,21 @@ function TradeCard({ trade, currentPrice }: { trade: Trade; currentPrice: number
 
 // ─── Main AIPanel ─────────────────────────────────────────────────────────────
 
-export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, activeCoin, livePrice, onReset, onForceEntry }: Props) {
+export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, activeCoin, tickers, onReset, onForceEntry }: Props) {
   const [subTab, setSubTab] = useState<'signals' | 'trades'>('signals');
   const pred = predictions[activeCoin];
 
-  const totalPnl = portfolio.balance - portfolio.startBalance;
-  const totalPnlPct = (totalPnl / portfolio.startBalance) * 100;
-  const progress = (portfolio.balance / 100000) * 100;
+  // Unrealized P&L across all open positions using live prices
+  const unrealizedPnl = portfolio.openTrades.reduce((sum, t) => {
+    const price = tickers[t.coin]?.price ?? null;
+    const pnl = livePnl(t, price);
+    return sum + (pnl ?? 0);
+  }, 0);
+
+  const realizedPnl  = portfolio.balance - portfolio.startBalance;
+  const totalPnl     = realizedPnl + unrealizedPnl;
+  const totalPnlPct  = (totalPnl / portfolio.startBalance) * 100;
+  const progress     = (portfolio.balance / 100000) * 100;
 
   const allCoins: Coin[] = [
     'BTC', 'ETH', 'BNB', 'XRP', 'LTC', 'TRX',
@@ -326,7 +334,7 @@ export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, active
             <div className="trades-section">
               <div className="trades-section-title">OPEN POSITIONS ({portfolio.openTrades.length})</div>
               {portfolio.openTrades.map(t => (
-                <TradeCard key={t.id} trade={t} currentPrice={t.coin === activeCoin ? livePrice : null} />
+                <TradeCard key={t.id} trade={t} currentPrice={tickers[t.coin]?.price ?? null} />
               ))}
             </div>
           )}

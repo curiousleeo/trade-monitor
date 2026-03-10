@@ -197,7 +197,7 @@ export default function App() {
               predictions={predictions}
               tfMatrix={tfMatrix}
               activeCoin={coin}
-              livePrice={tickers[coin]?.price ?? null}
+              tickers={tickers}
               onReset={resetPortfolio}
               onForceEntry={forceEntry}
             />
