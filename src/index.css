@@ -571,7 +571,7 @@ body {
 
 /* Signals tab */
 .ai-signals-tab {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
+  flex: 1; overflow-y: auto; overflow-x: clip;
   padding: 12px; display: flex; flex-direction: column; gap: 10px;
   scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
 }
