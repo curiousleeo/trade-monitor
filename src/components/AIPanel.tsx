@@ -15,8 +15,9 @@ interface Props {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function fmtUsd(v: number, decimals = 2): string {
-  return `$${v.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+function fmtUsd(v: number, decimals?: number): string {
+  const d = decimals ?? (v >= 100 ? 0 : v >= 1 ? 2 : v >= 0.01 ? 4 : 6);
+  return `$${v.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d })}`;
 }
 
 function fmtPct(v: number): string {
@@ -115,16 +116,16 @@ function PredictionCard({ pred, coin }: { pred: Prediction | null; coin: Coin })
         <div className="pred-level">
           <span className="pred-level-label">Entry</span>
           <span className="pred-level-val">
-            {fmtUsd(pred.entryZone[0], 0)}–{fmtUsd(pred.entryZone[1], 0)}
+            {fmtUsd(pred.entryZone[0])}–{fmtUsd(pred.entryZone[1])}
           </span>
         </div>
         <div className="pred-level">
           <span className="pred-level-label">Target</span>
-          <span className="pred-level-val up">{fmtUsd(pred.targetPrice, 0)}</span>
+          <span className="pred-level-val up">{fmtUsd(pred.targetPrice)}</span>
         </div>
         <div className="pred-level">
           <span className="pred-level-label">Stop</span>
-          <span className="pred-level-val down">{fmtUsd(pred.stopPrice, 0)}</span>
+          <span className="pred-level-val down">{fmtUsd(pred.stopPrice)}</span>
         </div>
         <div className="pred-level">
           <span className="pred-level-label">R:R</span>
@@ -194,19 +195,19 @@ function TradeCard({ trade, currentPrice }: { trade: Trade; currentPrice: number
       <div className="trade-levels">
         <span className="trade-level-item">
           <span className="trade-level-label">Entry</span>
-          <span>{fmtUsd(trade.entryPrice, 0)}</span>
+          <span>{fmtUsd(trade.entryPrice)}</span>
         </span>
         <span className="trade-level-item">
           <span className="trade-level-label">SL</span>
-          <span className="down">{fmtUsd(trade.stopLoss, 0)}</span>
+          <span className="down">{fmtUsd(trade.stopLoss)}</span>
         </span>
         <span className="trade-level-item">
           <span className="trade-level-label">TP</span>
-          <span className="up">{fmtUsd(trade.takeProfit, 0)}</span>
+          <span className="up">{fmtUsd(trade.takeProfit)}</span>
         </span>
         <span className="trade-level-item">
           <span className="trade-level-label">Size</span>
-          <span>{fmtUsd(trade.size, 0)}</span>
+          <span>{fmtUsd(trade.size)}</span>
         </span>
       </div>
       {pnl !== null && (
