@@ -203,13 +203,23 @@ export function useAITrader({
     if (port.openTrades.length >= MAX_OPEN) return;
     if (candleIdx - lastEntryCandle.current < ENTRY_GAP_CANDLES) return;
 
+    // Accumulate all qualifying trades first, then write once.
+    // React batches setPortfolio calls — only the last survives if called in a loop,
+    // so we must collect all trades and call setPortfolio exactly once.
+    const tradesToEnter: Trade[] = [];
+
     COINS.forEach(coin => {
+      // Respect MAX_OPEN including trades already queued this cycle
+      if (port.openTrades.length + tradesToEnter.length >= MAX_OPEN) return;
+
       const pred = predictions[coin];
       if (!pred || pred.direction === 'NEUTRAL') return;
       if (pred.confidence < MIN_CONFIDENCE) return;
 
       // Per-coin gates
-      if (port.openTrades.some(t => t.coin === coin)) return; // already open
+      const alreadyOpen = port.openTrades.some(t => t.coin === coin)
+        || tradesToEnter.some(t => t.coin === coin);
+      if (alreadyOpen) return;
       const slUntil = slCooldownUntilCandle.current[coin] ?? 0;
       if (candleIdx < slUntil) return; // SL cooldown active
 
@@ -222,25 +232,26 @@ export function useAITrader({
       const atrPct = pred.atr / price;
       if (atrPct < MIN_ATR_PCT || atrPct > MAX_ATR_PCT) return;
 
-      // Correlation gate: don't double up on highly correlated coins
+      // Correlation gate: check against both existing and pending trades
+      const allOpen = [...port.openTrades, ...tradesToEnter];
       const hasCorrelated = CORRELATED_PAIRS.some(([a, b]) => {
         if (coin !== a && coin !== b) return false;
         const other = coin === a ? b : a;
-        return port.openTrades.some(t => t.coin === other && t.direction === pred.direction);
+        return allOpen.some(t => t.coin === other && t.direction === pred.direction);
       });
       if (hasCorrelated) return;
 
       // Dynamic risk: scale with confidence — 1% weak, 2% normal, 3% strong
-      const riskPct    = pred.confidence >= 80 ? 0.03 : pred.confidence >= 72 ? 0.02 : 0.01;
+      const riskPct     = pred.confidence >= 80 ? 0.03 : pred.confidence >= 72 ? 0.02 : 0.01;
       const riskDollars = port.balance * riskPct;
-      const stopDist   = Math.abs(price - pred.stopPrice);
+      const stopDist    = Math.abs(price - pred.stopPrice);
       if (stopDist === 0) return;
 
-      const coinUnits  = riskDollars / stopDist;
-      const size       = coinUnits * price;
+      const coinUnits = riskDollars / stopDist;
+      const size      = coinUnits * price;
       if (size < 1 || size > port.balance * 0.4) return; // sanity: max 40% in one trade
 
-      const trade: Trade = {
+      tradesToEnter.push({
         id:           uid(),
         predictionId: pred.id,
         coin,
@@ -251,16 +262,18 @@ export function useAITrader({
         takeProfit:   pred.targetPrice,
         size,
         status:       'OPEN',
-      };
+      });
+    });
 
+    if (tradesToEnter.length > 0) {
       const next: StoredPortfolio = {
         ...port,
-        openTrades: [...port.openTrades, trade],
+        openTrades: [...port.openTrades, ...tradesToEnter],
       };
       lastEntryCandle.current = candleIdx;
       setPortfolio(next);
-      onTradeOpened(next, trade);  // ← only write to storage here
-    });
+      tradesToEnter.forEach(t => onTradeOpened(next, t));
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [predictions, tickers]);
 
