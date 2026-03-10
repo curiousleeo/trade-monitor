@@ -114,7 +114,8 @@ body {
 }
 
 /* Coin cards — nof1 ticker style */
-.coin-cards { display: flex; align-items: center; gap: 2px; flex: 1; }
+.coin-cards { display: flex; align-items: center; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+.coin-cards::-webkit-scrollbar { display: none; }
 
 .coin-card {
   display: flex; align-items: center; gap: 8px;
@@ -589,7 +590,10 @@ body {
 /* ════════════════════════════════════════
    PREDICTION COIN PILLS
 ════════════════════════════════════════ */
-.pred-coin-row { display: flex; gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; scrollbar-width: thin; }
+.pred-coin-row { display: flex; gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px; padding-right: 8px; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+.pred-coin-row::-webkit-scrollbar { height: 4px; }
+.pred-coin-row::-webkit-scrollbar-track { background: transparent; }
+.pred-coin-row::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 .pred-coin-pill {
   flex: 0 0 auto; min-width: 60px; display: flex; flex-direction: column; gap: 2px;
   padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border);
