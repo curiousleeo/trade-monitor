@@ -5,6 +5,7 @@ import { CoinCard }        from './components/CoinCard';
 import { StatsStrip }      from './components/StatsStrip';
 import { ChartToolbar }    from './components/ChartToolbar';
 import { AIPanel }         from './components/AIPanel';
+import { BacktestPanel }   from './components/BacktestPanel';
 import { HelpModal }       from './components/HelpModal';
 import { useKlines }       from './hooks/useKlines';
 import { useNews }         from './hooks/useNews';
@@ -58,7 +59,7 @@ export default function App() {
   const [mobilePage, setMobilePage]           = useState<'chart' | 'news' | 'ai'>('chart');
   const [scrollToTime, setScrollToTime]       = useState<number | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
-  const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai'>('news');
+  const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai' | 'backtest'>('news');
   const [sidebarOpen, setSidebarOpen]         = useState(true);
   const [showHelp, setShowHelp]               = useState(false);
   const now = useClock();
@@ -182,6 +183,12 @@ export default function App() {
             >
               Apex AI
             </button>
+            <button
+              className={`sidebar-tab ${sidebarTab === 'backtest' ? 'active' : ''}`}
+              onClick={() => setSidebarTab('backtest')}
+            >
+              Backtest
+            </button>
           </div>
 
           {sidebarTab === 'news' ? (
@@ -190,7 +197,7 @@ export default function App() {
               highlightedId={highlightedNewsId}
               onItemClick={handleNewsClick}
             />
-          ) : (
+          ) : sidebarTab === 'ai' ? (
             <AIPanel
               portfolio={portfolio}
               closedTrades={closedTrades}
@@ -200,6 +207,12 @@ export default function App() {
               tickers={tickers}
               onReset={resetPortfolio}
               onForceEntry={forceEntry}
+            />
+          ) : (
+            <BacktestPanel
+              candles={candles}
+              coin={coin}
+              timeframe={timeframe}
             />
           )}
         </aside>

@@ -1043,3 +1043,237 @@ body {
 @media (max-width: 480px) {
   .header { padding: 5px 10px; }
 }
+
+/* ─── BacktestPanel ──────────────────────────────────────────────────────── */
+
+.bt-panel {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.bt-loading {
+  padding: 24px 16px;
+  color: var(--text3);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bt-loading-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.bt-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.bt-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text1);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.bt-meta {
+  font-size: 10px;
+  color: var(--text3);
+}
+
+/* Equity curve */
+.bt-eq-wrap {
+  background: var(--surface2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.bt-equity-svg {
+  display: block;
+  width: 100%;
+  height: 72px;
+}
+.bt-eq-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+}
+.bt-eq-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 11px;
+}
+.bt-eq-up   { color: var(--bull) !important; }
+.bt-eq-down { color: var(--bear) !important; }
+
+/* Stats grid */
+.bt-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.bt-stat {
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 8px 8px 7px;
+  border: 1px solid transparent;
+}
+.bt-stat--good { border-color: rgba(34,197,94,0.25); }
+.bt-stat--bad  { border-color: rgba(239,68,68,0.20); }
+.bt-stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text1);
+  line-height: 1;
+}
+.bt-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-top: 3px;
+}
+.bt-stat-sub {
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 1px;
+  opacity: 0.8;
+}
+
+/* Sections */
+.bt-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bt-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+/* Walk-forward */
+.bt-wf-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.bt-wf-block { flex: 1; }
+.bt-wf-block--right { text-align: right; }
+.bt-wf-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text3);
+  margin-bottom: 2px;
+}
+.bt-wf-value {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text1);
+}
+.bt-wf-sub {
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.bt-wf-arrow {
+  font-size: 16px;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+
+/* Signal attribution table */
+.bt-sig-table, .bt-conf-table {
+  background: var(--surface2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.bt-sig-row, .bt-conf-row {
+  display: grid;
+  grid-template-columns: 1.6fr 0.5fr 1fr 1fr;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 10px;
+  gap: 4px;
+}
+.bt-sig-row + .bt-sig-row,
+.bt-conf-row + .bt-conf-row {
+  border-top: 1px solid var(--border);
+}
+.bt-sig-header, .bt-conf-header {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text3);
+  background: var(--surface3, var(--surface2));
+}
+.bt-sig-row--strong { background: rgba(34,197,94,0.05); }
+.bt-sig-name { color: var(--text2); font-weight: 500; }
+.bt-sig-wt   { color: var(--text3); font-family: var(--font-mono); }
+.bt-sig-wr   { font-family: var(--font-mono); font-weight: 600; }
+.bt-sig-wr small { opacity: 0.6; font-size: 9px; }
+
+.bt-conf-row { grid-template-columns: 1fr 0.6fr 0.8fr 1fr; }
+
+.bt-sig-hint {
+  font-size: 9px;
+  color: var(--text3);
+  padding: 0 2px;
+  opacity: 0.8;
+}
+
+/* Trades toggle */
+.bt-trades-toggle {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s;
+}
+.bt-trades-toggle:hover { background: var(--surface3, var(--surface2)); filter: brightness(1.1); }
+
+/* Trades list */
+.bt-trades { display: flex; flex-direction: column; gap: 3px; }
+.bt-trade-row {
+  display: grid;
+  grid-template-columns: 0.8fr 0.6fr 1.2fr 0.9fr 0.7fr 0.5fr;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  background: var(--surface2);
+  gap: 4px;
+}
+.bt-trade--win  { border-left: 2px solid var(--bull); }
+.bt-trade--loss { border-left: 2px solid var(--bear); }
+.bt-trade-dir  { font-weight: 700; font-size: 9px; letter-spacing: 0.05em; }
+.bt-trade-conf { color: var(--text3); }
+.bt-trade-entry { color: var(--text2); }
+.bt-trade-pnl  { font-weight: 700; }
+.bt-trade-exit { color: var(--text3); font-size: 9px; }
+.bt-trade-hold { color: var(--text3); text-align: right; }
