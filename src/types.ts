@@ -7,15 +7,6 @@ export interface Candle {
   volume: number;
 }
 
-export interface NewsItem {
-  id: string;
-  title: string;
-  url: string;
-  source: string;
-  publishedAt: number; // unix seconds
-  categories: string;
-}
-
 export interface PriceAlert {
   id: string;
   coin: Coin;

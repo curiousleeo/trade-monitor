@@ -13,7 +13,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  Candle, Coin, FearGreed, FundingRate, NewsItem,
+  Candle, Coin, FearGreed, FundingRate,
   Prediction, TFBias, TickerData, Trade, Timeframe,
 } from '../types';
 import { generatePrediction, getTFMatrix } from '../ai/engine';
@@ -78,7 +78,6 @@ interface Props {
   tickers:         Record<Coin, TickerData | null>;
   fearGreed:       FearGreed | null;
   fundingRates:    Record<Coin, FundingRate | null>;
-  news:            NewsItem[];
   prevDay:         { high: number; low: number } | null;
 }
 
@@ -96,7 +95,6 @@ export function useAITrader({
   tickers,
   fearGreed,
   fundingRates,
-  news,
   prevDay,
 }: Props): AITraderResult {
 
@@ -149,7 +147,7 @@ export function useAITrader({
 
       const pred = generatePrediction(
         candles, coin, activeTimeframe,
-        fearGreed, fundingRates[coin] ?? null, news,
+        fearGreed, fundingRates[coin] ?? null, [],
         coin === activeCoin ? prevDay : null,
       );
       next[coin] = pred;
@@ -158,7 +156,7 @@ export function useAITrader({
 
     setPredictions(next);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCoin, activeCandles, allCandles, activeTimeframe, fearGreed, fundingRates, news, prevDay, shouldPredict]);
+  }, [activeCoin, activeCandles, allCandles, activeTimeframe, fearGreed, fundingRates, prevDay, shouldPredict]);
 
   // Fire when active candles close (but only every PRED_CANDLE_GAP candles)
   const prevCandleCount = useRef(0);

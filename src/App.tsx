@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
 import { KLineChart }       from './components/KLineChart';
-import { NewsFeed }        from './components/NewsFeed';
 import { CoinCard }        from './components/CoinCard';
 import { StatsStrip }      from './components/StatsStrip';
 import { ChartToolbar }    from './components/ChartToolbar';
@@ -8,7 +7,6 @@ import { AIPanel }         from './components/AIPanel';
 import { BacktestPanel }   from './components/BacktestPanel';
 import { HelpModal }       from './components/HelpModal';
 import { useKlines }       from './hooks/useKlines';
-import { useNews }         from './hooks/useNews';
 import { useFearGreed }    from './hooks/useFearGreed';
 import { useFundingRate }  from './hooks/useFundingRate';
 import { usePrevDayOHLC }  from './hooks/usePrevDayOHLC';
@@ -56,10 +54,9 @@ export default function App() {
   const [showBOLL, setShowBOLL]               = useState(false);
   const [showRSI,  setShowRSI]                = useState(false);
   const [showMACD, setShowMACD]               = useState(false);
-  const [mobilePage, setMobilePage]           = useState<'chart' | 'news' | 'ai'>('chart');
+  const [mobilePage, setMobilePage]           = useState<'chart' | 'ai'>('chart');
   const [scrollToTime, setScrollToTime]       = useState<number | null>(null);
-  const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
-  const [sidebarTab, setSidebarTab]           = useState<'news' | 'ai' | 'backtest'>('news');
+  const [sidebarTab, setSidebarTab]           = useState<'ai' | 'backtest'>('ai');
   const [sidebarOpen, setSidebarOpen]         = useState(true);
   const [showHelp, setShowHelp]               = useState(false);
   const now = useClock();
@@ -68,7 +65,6 @@ export default function App() {
   // ── Data hooks ─────────────────────────────────────────────────────────
   const { candles, liveCandle } = useKlines(coin, timeframe);
   const tickers     = use24hTicker();
-  const news        = useNews();
   const fearGreed   = useFearGreed();
   const fundingRate = useFundingRate(coin);
 
@@ -95,15 +91,9 @@ export default function App() {
     tickers,
     fearGreed,
     fundingRates,
-    news,
     prevDay,
   });
 
-  const handleNewsClick = useCallback((publishedAt: number, id: string) => {
-    setScrollToTime(publishedAt);
-    setHighlightedNewsId(id);
-    setTimeout(() => setScrollToTime(null), 500);
-  }, []);
 
   const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
@@ -172,12 +162,6 @@ export default function App() {
 
           <div className="sidebar-tabs">
             <button
-              className={`sidebar-tab ${sidebarTab === 'news' ? 'active' : ''}`}
-              onClick={() => setSidebarTab('news')}
-            >
-              News
-            </button>
-            <button
               className={`sidebar-tab ${sidebarTab === 'ai' ? 'active' : ''}`}
               onClick={() => setSidebarTab('ai')}
             >
@@ -191,13 +175,7 @@ export default function App() {
             </button>
           </div>
 
-          {sidebarTab === 'news' ? (
-            <NewsFeed
-              news={news}
-              highlightedId={highlightedNewsId}
-              onItemClick={handleNewsClick}
-            />
-          ) : sidebarTab === 'ai' ? (
+          {sidebarTab === 'ai' ? (
             <AIPanel
               portfolio={portfolio}
               closedTrades={closedTrades}
@@ -278,13 +256,6 @@ export default function App() {
           >
             <span className="mobile-tab-icon">📈</span>
             <span>Chart</span>
-          </button>
-          <button
-            className={`mobile-tab-btn ${mobilePage === 'news' ? 'mobile-tab-btn--active' : ''}`}
-            onClick={() => { setMobilePage('news'); setSidebarTab('news'); }}
-          >
-            <span className="mobile-tab-icon">📰</span>
-            <span>News</span>
           </button>
           <button
             className={`mobile-tab-btn ${mobilePage === 'ai' ? 'mobile-tab-btn--active' : ''}`}

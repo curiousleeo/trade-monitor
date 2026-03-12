@@ -14,7 +14,7 @@
  * No sentiment or news signals — pure price action.
  */
 
-import { Candle, Coin, FearGreed, FundingRate, NewsItem, Prediction, PredictionDirection, Signal, TFBias, Timeframe } from '../types';
+import { Candle, Coin, FearGreed, FundingRate, Prediction, PredictionDirection, Signal, TFBias, Timeframe } from '../types';
 import { calcEMA, calcRSI, calcVWAP, calcStochRSI, calcMACD } from '../utils/indicators';
 import { DEFAULT_WEIGHTS, loadWeights, resolveWeights } from './learner';
 
@@ -468,9 +468,9 @@ export function generatePrediction(
   candles: Candle[],
   coin: Coin,
   timeframe: Timeframe,
-  _fearGreed: FearGreed | null,       // kept for API compatibility — not used in TA model
-  _fundingRate: FundingRate | null,   // kept for API compatibility — not used in TA model
-  _news: NewsItem[],                  // kept for API compatibility — not used in TA model
+  _fearGreed: FearGreed | null,
+  _fundingRate: FundingRate | null,
+  _news: unknown[],
   _prevDay: { high: number; low: number } | null,
 ): Prediction {
   const price = candles[candles.length - 1].close;
