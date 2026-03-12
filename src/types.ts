@@ -97,6 +97,7 @@ export interface Trade {
   exitTime?: number;
   pnl?: number;          // USD
   pnlPct?: number;       // percentage
+  signals?: Signal[];    // snapshot of signals at entry — used for self-learning
 }
 
 export interface Portfolio {

@@ -16,6 +16,7 @@
 
 import { Candle, Coin, FearGreed, FundingRate, NewsItem, Prediction, PredictionDirection, Signal, TFBias, Timeframe } from '../types';
 import { calcEMA, calcRSI, calcVWAP, calcStochRSI, calcMACD } from '../utils/indicators';
+import { DEFAULT_WEIGHTS, loadWeights, resolveWeights } from './learner';
 
 // ─── ATR ─────────────────────────────────────────────────────────────────────
 
@@ -483,15 +484,17 @@ export function generatePrediction(
   const candle    = scoreCandlePattern(candles);
   const vwap      = scoreVWAP(candles);
 
-  // Weights: pure TA — multi-TF + liquidity sweeps are primary, rest are confirmation
+  // Use learned weights if available, otherwise fall back to defaults
+  const learnedWeights = resolveWeights(loadWeights());
+
   const signals: Signal[] = [
-    { name: 'Multi-TF Alignment', value: multiTF.value,   weight: 0.20, description: multiTF.description },
-    { name: 'Liquidity Sweep',    value: liquidity.value,  weight: 0.20, description: liquidity.description },
-    { name: 'MACD Momentum',      value: macd.value,       weight: 0.15, description: macd.description },
-    { name: 'Stoch RSI',          value: stochRsi.value,   weight: 0.15, description: stochRsi.description },
-    { name: 'EMA Trend',          value: emaTrend.value,   weight: 0.15, description: emaTrend.description },
-    { name: 'Candle Pattern',     value: candle.value,     weight: 0.10, description: candle.description },
-    { name: 'VWAP',               value: vwap.value,       weight: 0.05, description: vwap.description },
+    { name: 'Multi-TF Alignment', value: multiTF.value,   weight: learnedWeights['Multi-TF Alignment'] ?? DEFAULT_WEIGHTS['Multi-TF Alignment'], description: multiTF.description },
+    { name: 'Liquidity Sweep',    value: liquidity.value,  weight: learnedWeights['Liquidity Sweep']    ?? DEFAULT_WEIGHTS['Liquidity Sweep'],    description: liquidity.description },
+    { name: 'MACD Momentum',      value: macd.value,       weight: learnedWeights['MACD Momentum']      ?? DEFAULT_WEIGHTS['MACD Momentum'],      description: macd.description },
+    { name: 'Stoch RSI',          value: stochRsi.value,   weight: learnedWeights['Stoch RSI']          ?? DEFAULT_WEIGHTS['Stoch RSI'],          description: stochRsi.description },
+    { name: 'EMA Trend',          value: emaTrend.value,   weight: learnedWeights['EMA Trend']          ?? DEFAULT_WEIGHTS['EMA Trend'],          description: emaTrend.description },
+    { name: 'Candle Pattern',     value: candle.value,     weight: learnedWeights['Candle Pattern']     ?? DEFAULT_WEIGHTS['Candle Pattern'],     description: candle.description },
+    { name: 'VWAP',               value: vwap.value,       weight: learnedWeights['VWAP']               ?? DEFAULT_WEIGHTS['VWAP'],               description: vwap.description },
   ];
 
   // Composite: weighted average, scaled 0–100 (50 = neutral)

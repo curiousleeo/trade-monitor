@@ -22,6 +22,10 @@ import {
   loadPortfolio, loadHistory,
   onTradeOpened, onTradeClosed, resetStorage,
 } from '../lib/db';
+import {
+  loadWeights, learnFromTrades, shouldLearn, resetWeights,
+  LearnedWeights,
+} from '../ai/learner';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -61,6 +65,7 @@ export interface AITraderResult {
   predictions:    Record<Coin, Prediction | null>;
   tfMatrix:       TFBias[];
   tradeMarkers:   TradeMarkerData[];
+  learnedWeights: LearnedWeights;
   resetPortfolio: () => void;
   forceEntry:     (coin: Coin) => void;
 }
@@ -96,12 +101,13 @@ export function useAITrader({
 }: Props): AITraderResult {
 
   // Portfolio state — only trades + balance (predictions are ephemeral)
-  const [portfolio,    setPortfolio]    = useState<StoredPortfolio>(loadPortfolio);
-  const [closedTrades, setClosedTrades] = useState<Trade[]>(loadHistory);
-  const [predictions,  setPredictions]  = useState<Record<Coin, Prediction | null>>(
+  const [portfolio,      setPortfolio]      = useState<StoredPortfolio>(loadPortfolio);
+  const [closedTrades,   setClosedTrades]   = useState<Trade[]>(loadHistory);
+  const [predictions,    setPredictions]    = useState<Record<Coin, Prediction | null>>(
     () => Object.fromEntries(COINS.map(c => [c, null])) as Record<Coin, Prediction | null>
   );
-  const [tfMatrix,     setTfMatrix]     = useState<TFBias[]>([]);
+  const [tfMatrix,       setTfMatrix]       = useState<TFBias[]>([]);
+  const [learnedWeights, setLearnedWeights] = useState<LearnedWeights>(loadWeights);
 
   // Refs for rate-limiting (mutated without triggering re-renders)
   const portfolioRef           = useRef<StoredPortfolio>(portfolio);
@@ -265,6 +271,7 @@ export function useAITrader({
         takeProfit:   pred.targetPrice,
         size,
         status:       'OPEN',
+        signals:      pred.signals,  // snapshot for self-learning
       });
     });
 
@@ -380,6 +387,13 @@ export function useAITrader({
       const nextHistory = [...newlyClosed, ...closedRef.current].slice(0, 200);
       setClosedTrades(nextHistory);
       newlyClosed.forEach(t => onTradeClosed(nextPortfolio, t));
+
+      // Self-learning: retrain weights every LEARN_EVERY new closed trades
+      const current = loadWeights();
+      if (shouldLearn(nextHistory.length, current.trainedOn)) {
+        const updated = learnFromTrades(nextHistory, current);
+        if (updated) setLearnedWeights(updated);
+      }
     }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -445,6 +459,7 @@ export function useAITrader({
       takeProfit:   pred.targetPrice,
       size,
       status:       'OPEN',
+      signals:      pred.signals,  // snapshot for self-learning
     };
 
     const next: StoredPortfolio = { ...port, openTrades: [...port.openTrades, trade] };
@@ -466,7 +481,9 @@ export function useAITrader({
     lastEntryCandle.current       = 0;
     allLoaded.current             = false;
     resetStorage();
+    resetWeights();
+    setLearnedWeights(loadWeights());
   }, []);
 
-  return { portfolio, closedTrades, predictions, tfMatrix, tradeMarkers, resetPortfolio, forceEntry };
+  return { portfolio, closedTrades, predictions, tfMatrix, tradeMarkers, learnedWeights, resetPortfolio, forceEntry };
 }
