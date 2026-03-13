@@ -6,6 +6,7 @@ import { ChartToolbar }    from './components/ChartToolbar';
 import { AIPanel }         from './components/AIPanel';
 import { BacktestPanel }   from './components/BacktestPanel';
 import { HelpModal }       from './components/HelpModal';
+import { LogDrawer }       from './components/LogDrawer';
 import { useKlines }       from './hooks/useKlines';
 import { useFearGreed }    from './hooks/useFearGreed';
 import { useFundingRate }  from './hooks/useFundingRate';
@@ -59,6 +60,7 @@ export default function App() {
   const [sidebarTab, setSidebarTab]           = useState<'ai' | 'backtest'>('ai');
   const [sidebarOpen, setSidebarOpen]         = useState(true);
   const [showHelp, setShowHelp]               = useState(false);
+  const [showLog,  setShowLog]                = useState(false);
   const now = useClock();
   const { theme, toggle: toggleTheme } = useTheme();
 
@@ -164,6 +166,13 @@ export default function App() {
             <span className="header-clock-date">{dateStr}</span>
           </div>
           <button
+            className="log-btn"
+            onClick={() => setShowLog(true)}
+            title="Activity log & model weights"
+          >
+            LOG
+          </button>
+          <button
             className="help-btn"
             onClick={() => setShowHelp(true)}
             title="How to use Apex"
@@ -181,6 +190,14 @@ export default function App() {
       </header>
 
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      {showLog  && (
+        <LogDrawer
+          activityLog={activityLog}
+          learnedWeights={learnedWeights}
+          closedTrades={closedTrades}
+          onClose={() => setShowLog(false)}
+        />
+      )}
 
       {/* ── Stats strip ── */}
       <StatsStrip
@@ -216,8 +233,6 @@ export default function App() {
               tfMatrix={tfMatrix}
               activeCoin={coin}
               tickers={tickers}
-              learnedWeights={learnedWeights}
-              activityLog={activityLog}
               onReset={resetPortfolio}
               onForceEntry={forceEntry}
             />

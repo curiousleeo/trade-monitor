@@ -1,6 +1,5 @@
-import { Coin, LogEntry, Prediction, TFBias, TickerData, Trade } from '../types';
+import { Coin, Prediction, TFBias, TickerData, Trade } from '../types';
 import { StoredPortfolio } from '../lib/db';
-import { LearnedWeights, DEFAULT_WEIGHTS } from '../ai/learner';
 
 interface Props {
   portfolio:      StoredPortfolio;
@@ -9,8 +8,6 @@ interface Props {
   tfMatrix:       TFBias[];
   activeCoin:     Coin;
   tickers:        Record<Coin, TickerData | null>;
-  learnedWeights: LearnedWeights;
-  activityLog:    LogEntry[];
   onReset:        () => void;
   onForceEntry:   (coin: Coin) => void;
 }
@@ -283,7 +280,7 @@ const ALL_COINS: Coin[] = [
 
 export function AIPanel({
   portfolio, closedTrades, predictions, tfMatrix, activeCoin,
-  tickers, learnedWeights, activityLog, onReset, onForceEntry,
+  tickers, onReset, onForceEntry,
 }: Props) {
   const pred = predictions[activeCoin];
 
@@ -353,60 +350,7 @@ export function AIPanel({
           </>
         )}
 
-        {/* ── 6. Activity Log ────────────────────────── */}
-        <SectionHeader label="ACTIVITY LOG" meta={activityLog.length > 0 ? `${activityLog.length} events` : undefined} />
-        {activityLog.length === 0 ? (
-          <div className="log-empty">Waiting for first trade…</div>
-        ) : (
-          <div className="log-feed">
-            {activityLog.slice(0, 30).map(entry => (
-              <div key={entry.id} className={`log-entry log-entry--${entry.level}`}>
-                <span className="log-time">
-                  {new Date(entry.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
-                </span>
-                <div className="log-body">
-                  <div className="log-message">{entry.message}</div>
-                  {entry.detail && <div className="log-detail">{entry.detail}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── 7. Model Weights ───────────────────────── */}
-        <SectionHeader
-          label="MODEL WEIGHTS"
-          meta={learnedWeights.version > 0 ? `v${learnedWeights.version} · ${learnedWeights.trainedOn} trades` : 'v0 default'}
-        />
-        <div className="learn-weights-table">
-          <div className="learn-weights-header">
-            <span>Signal</span>
-            <span>Default</span>
-            <span>Current</span>
-            <span>Accuracy</span>
-          </div>
-          {Object.keys(DEFAULT_WEIGHTS).map(name => {
-            const def  = DEFAULT_WEIGHTS[name];
-            const cur  = learnedWeights.weights[name] ?? def;
-            const acc  = learnedWeights.accuracy[name];
-            const diff = cur - def;
-            return (
-              <div key={name} className="learn-weights-row">
-                <span className="learn-signal-name">{name}</span>
-                <span className="learn-weight-def">{(def * 100).toFixed(0)}%</span>
-                <span className={`learn-weight-cur ${diff > 0.005 ? 'up' : diff < -0.005 ? 'down' : ''}`}>
-                  {(cur * 100).toFixed(1)}%
-                  {Math.abs(diff) > 0.005 && (
-                    <span className="learn-weight-delta">{diff > 0 ? ' ▲' : ' ▼'}{Math.abs(diff * 100).toFixed(1)}</span>
-                  )}
-                </span>
-                <span className="learn-accuracy">{acc != null ? `${(acc * 100).toFixed(0)}%` : '—'}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ── 8. Closed Trade History ─────────────────── */}
+        {/* ── 6. Closed Trade History ─────────────────── */}
         {closedTrades.length > 0 && (
           <>
             <SectionHeader label="TRADE HISTORY" meta={`${closedTrades.length} trades`} />
