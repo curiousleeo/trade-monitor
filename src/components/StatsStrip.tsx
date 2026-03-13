@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { FearGreed, FundingRate, TickerData } from '../types';
 
 // ─── Market Session ────────────────────────────────────────────────────────────
@@ -125,10 +126,10 @@ function MarketSession() {
       <span className="stat-value" style={{ color: session.color }}>{session.name}</span>
       {timeLeft && <span className="stat-sub">{timeLeft} left</span>}
 
-      {tooltipPos && (
+      {tooltipPos && createPortal(
         <div
           className="market-tooltip"
-          style={{ position: 'fixed', top: tooltipPos.top, left: tooltipPos.left, width: 296, maxWidth: 'calc(100vw - 16px)' }}
+          style={{ position: 'fixed', top: tooltipPos.top, left: tooltipPos.left, width: '296px', maxWidth: 'calc(100vw - 16px)', boxSizing: 'border-box' }}
         >
           {/* Card header */}
           <div className="market-tooltip-header">
@@ -168,7 +169,8 @@ function MarketSession() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

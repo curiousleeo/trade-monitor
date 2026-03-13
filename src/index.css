@@ -418,7 +418,7 @@ body {
 
 /* Market Session — hover card (position:fixed set inline to escape overflow:hidden) */
 .market-tooltip {
-  z-index: 200;
+  z-index: 9999;
   background: var(--bg3);
   border: 1px solid var(--border2);
   border-radius: 6px;
@@ -427,6 +427,7 @@ body {
   max-width: calc(100vw - 16px);
   box-shadow: var(--shadow-lg);
   pointer-events: none;
+  overflow: hidden;
 }
 .market-tooltip-header {
   display: flex; align-items: center; gap: 7px;
@@ -446,6 +447,9 @@ body {
 .market-tooltip-desc {
   font-family: var(--font-ui); font-size: 11px; color: var(--text);
   line-height: 1.65; margin-bottom: 12px; opacity: 0.75;
+  white-space: normal !important;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .market-tooltip-legend {
   display: flex; gap: 6px 16px; flex-wrap: wrap;
@@ -471,10 +475,11 @@ body {
   transform: translateX(-50%);
   box-shadow: 0 0 5px rgba(209,212,220,0.5);
 }
-.market-timeline-labels { position: relative; height: 14px; }
+.market-timeline-labels { position: relative; height: 14px; overflow: hidden; }
 .market-timeline-label {
   position: absolute; transform: translateX(-50%);
   font-family: var(--font-mono); font-size: 8px; color: var(--text3);
+  white-space: nowrap;
 }
 
 /* ════════════════════════════════════════
