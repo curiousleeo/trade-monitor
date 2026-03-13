@@ -45,12 +45,29 @@ export const DEFAULT_WEIGHTS: Record<string, number> = {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export interface WeightChange {
+  signal:     string;
+  oldWeight:  number;   // before this cycle (0–1)
+  newWeight:  number;   // after this cycle (0–1)
+  accuracy:   number;   // 0–1 observed accuracy
+  delta:      number;   // newWeight - oldWeight
+}
+
+export interface LearningEvent {
+  timestamp:  number;
+  version:    number;
+  trainedOn:  number;
+  changes:    WeightChange[];
+  summary:    string;   // human-readable one-liner
+}
+
 export interface LearnedWeights {
   weights:    Record<string, number>;  // current learned weights (sum to 1)
   version:    number;                  // increments each learning cycle
   trainedOn:  number;                  // total trades used in last training
   lastUpdate: number;                  // timestamp of last update
   accuracy:   Record<string, number>;  // per-signal accuracy 0–1
+  history:    LearningEvent[];         // last 20 learning cycles
 }
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
@@ -66,6 +83,7 @@ export function loadWeights(): LearnedWeights {
     trainedOn:  0,
     lastUpdate: 0,
     accuracy:   {},
+    history:    [],
   };
 }
 
@@ -150,12 +168,42 @@ export function learnFromTrades(
     newWeights[n] = (newWeights[n] ?? DEFAULT_WEIGHTS[n]) / sum;
   });
 
+  // Build per-signal change records for the history log
+  const changes: WeightChange[] = signalNames
+    .filter(name => (accuracy[name] ?? 0) > 0 || (total[name] ?? 0) >= 5)
+    .map(name => ({
+      signal:    name,
+      oldWeight: current.weights[name] ?? DEFAULT_WEIGHTS[name],
+      newWeight: newWeights[name],
+      accuracy:  accuracy[name] ?? (current.accuracy[name] ?? 0.5),
+      delta:     newWeights[name] - (current.weights[name] ?? DEFAULT_WEIGHTS[name]),
+    }))
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)); // biggest changes first
+
+  const boosted = changes.filter(c => c.delta >  0.005).map(c => c.signal).join(', ');
+  const reduced = changes.filter(c => c.delta < -0.005).map(c => c.signal).join(', ');
+  const summaryParts: string[] = [];
+  if (boosted) summaryParts.push(`boosted: ${boosted}`);
+  if (reduced) summaryParts.push(`reduced: ${reduced}`);
+  const summary = summaryParts.length
+    ? summaryParts.join(' · ')
+    : 'Weights stable — no significant changes this cycle';
+
+  const event: LearningEvent = {
+    timestamp: Date.now(),
+    version:   current.version + 1,
+    trainedOn: usable.length,
+    changes,
+    summary,
+  };
+
   const updated: LearnedWeights = {
     weights:    newWeights,
     version:    current.version + 1,
     trainedOn:  usable.length,
     lastUpdate: Date.now(),
     accuracy,
+    history:    [event, ...(current.history ?? [])].slice(0, 20),
   };
 
   saveWeights(updated);

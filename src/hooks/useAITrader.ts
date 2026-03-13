@@ -14,7 +14,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Candle, Coin, FearGreed, FundingRate,
-  Prediction, TFBias, TickerData, Trade, Timeframe,
+  LogEntry, Prediction, TFBias, TickerData, Trade, Timeframe,
 } from '../types';
 import { generatePrediction, getTFMatrix } from '../ai/engine';
 import {
@@ -66,6 +66,7 @@ export interface AITraderResult {
   tfMatrix:       TFBias[];
   tradeMarkers:   TradeMarkerData[];
   learnedWeights: LearnedWeights;
+  activityLog:    LogEntry[];
   resetPortfolio: () => void;
   forceEntry:     (coin: Coin) => void;
 }
@@ -83,6 +84,34 @@ interface Props {
 
 function uid(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+// ─── Activity log persistence ─────────────────────────────────────────────────
+
+const LOG_KEY = 'apex-activity-log';
+const MAX_LOG = 150;
+
+function loadActivityLog(): LogEntry[] {
+  try {
+    const raw = localStorage.getItem(LOG_KEY);
+    return raw ? (JSON.parse(raw) as LogEntry[]) : [];
+  } catch { return []; }
+}
+
+function saveActivityLog(log: LogEntry[]): void {
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, MAX_LOG))); } catch {}
+}
+
+function fmtPrice(v: number): string {
+  return v >= 1000
+    ? `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+    : `$${v.toFixed(2)}`;
+}
+
+function fmtR(pnl: number, riskDollars: number): string {
+  if (riskDollars <= 0) return '';
+  const r = pnl / riskDollars;
+  return `${r >= 0 ? '+' : ''}${r.toFixed(1)}R`;
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
@@ -106,6 +135,16 @@ export function useAITrader({
   );
   const [tfMatrix,       setTfMatrix]       = useState<TFBias[]>([]);
   const [learnedWeights, setLearnedWeights] = useState<LearnedWeights>(loadWeights);
+  const [activityLog,    setActivityLog]    = useState<LogEntry[]>(loadActivityLog);
+
+  const addLog = useCallback((entry: Omit<LogEntry, 'id' | 'timestamp'>) => {
+    const full: LogEntry = { id: uid(), timestamp: Date.now(), ...entry };
+    setActivityLog(prev => {
+      const next = [full, ...prev].slice(0, MAX_LOG);
+      saveActivityLog(next);
+      return next;
+    });
+  }, []);
 
   // Refs for rate-limiting (mutated without triggering re-renders)
   const portfolioRef           = useRef<StoredPortfolio>(portfolio);
@@ -280,7 +319,18 @@ export function useAITrader({
       };
       lastEntryCandle.current = candleIdx;
       setPortfolio(next);
-      tradesToEnter.forEach(t => onTradeOpened(next, t));
+      tradesToEnter.forEach(t => {
+        onTradeOpened(next, t);
+        const pred = predictions[t.coin];
+        const conf = pred ? `${pred.confidence.toFixed(0)}% conf` : '';
+        const riskPct = t.size > 0 ? ((Math.abs(t.entryPrice - t.stopLoss) * (t.size / t.entryPrice)) / port.balance * 100).toFixed(1) : '?';
+        addLog({
+          type: 'trade_open',
+          level: 'info',
+          message: `◆ ${t.coin} ${t.direction} entered at ${fmtPrice(t.entryPrice)}`,
+          detail: `${conf} · risk ${riskPct}% · TP ${fmtPrice(t.takeProfit)} · SL ${fmtPrice(t.stopLoss)}`,
+        });
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [predictions, tickers]);
@@ -384,13 +434,54 @@ export function useAITrader({
     if (newlyClosed.length > 0) {
       const nextHistory = [...newlyClosed, ...closedRef.current].slice(0, 200);
       setClosedTrades(nextHistory);
-      newlyClosed.forEach(t => onTradeClosed(nextPortfolio, t));
+      newlyClosed.forEach(t => {
+        onTradeClosed(nextPortfolio, t);
+        const isWin   = t.status === 'CLOSED_TP';
+        const pnl     = t.pnl ?? 0;
+        const riskAmt = Math.abs(t.entryPrice - t.stopLoss) * (t.size / t.entryPrice);
+        const rStr    = fmtR(pnl, riskAmt);
+        const pnlStr  = `${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}`;
+        addLog({
+          type:  'trade_close',
+          level: isWin ? 'success' : 'error',
+          message: isWin
+            ? `✓ ${t.coin} ${t.direction} hit TP — ${pnlStr} (${rStr})`
+            : `✗ ${t.coin} ${t.direction} hit SL — ${pnlStr} (${rStr})`,
+          detail: `entry ${fmtPrice(t.entryPrice)} → exit ${fmtPrice(t.exitPrice ?? 0)}`,
+        });
+      });
 
       // Self-learning: retrain weights every LEARN_EVERY new closed trades
       const current = loadWeights();
       if (shouldLearn(nextHistory.length, current.trainedOn)) {
         const updated = learnFromTrades(nextHistory, current);
-        if (updated) setLearnedWeights(updated);
+        if (updated) {
+          setLearnedWeights(updated);
+          const boosted = updated.history[0]?.changes.filter(c => c.delta >  0.005).map(c => c.signal) ?? [];
+          const reduced = updated.history[0]?.changes.filter(c => c.delta < -0.005).map(c => c.signal) ?? [];
+          addLog({
+            type:  'learn',
+            level: 'warning',
+            message: `⟳ Model v${updated.version} updated — trained on ${updated.trainedOn} trades`,
+            detail: updated.history[0]?.summary ?? '',
+          });
+          boosted.forEach(sig => {
+            const ch = updated.history[0]?.changes.find(c => c.signal === sig);
+            if (ch) addLog({
+              type: 'learn', level: 'success',
+              message: `▲ ${sig} weight raised ${(ch.oldWeight * 100).toFixed(1)}% → ${(ch.newWeight * 100).toFixed(1)}%`,
+              detail: `accuracy ${(ch.accuracy * 100).toFixed(0)}% — performing well`,
+            });
+          });
+          reduced.forEach(sig => {
+            const ch = updated.history[0]?.changes.find(c => c.signal === sig);
+            if (ch) addLog({
+              type: 'learn', level: 'error',
+              message: `▼ ${sig} weight cut ${(ch.oldWeight * 100).toFixed(1)}% → ${(ch.newWeight * 100).toFixed(1)}%`,
+              detail: `accuracy ${(ch.accuracy * 100).toFixed(0)}% — underperforming`,
+            });
+          });
+        }
       }
     }
 
@@ -464,6 +555,11 @@ export function useAITrader({
     lastEntryCandle.current = activeCandleCount.current;
     setPortfolio(next);
     onTradeOpened(next, trade);
+    addLog({
+      type: 'trade_open', level: 'info',
+      message: `⚡ ${trade.coin} ${trade.direction} FORCE ENTRY at ${fmtPrice(trade.entryPrice)}`,
+      detail: `TP ${fmtPrice(trade.takeProfit)} · SL ${fmtPrice(trade.stopLoss)}`,
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [predictions, tickers]);
 
@@ -481,7 +577,11 @@ export function useAITrader({
     resetStorage();
     resetWeights();
     setLearnedWeights(loadWeights());
-  }, []);
+    const cleared: LogEntry[] = [];
+    setActivityLog(cleared);
+    saveActivityLog(cleared);
+    addLog({ type: 'system', level: 'warning', message: '↺ Portfolio reset — starting fresh at $1,000' });
+  }, [addLog]);
 
-  return { portfolio, closedTrades, predictions, tfMatrix, tradeMarkers, learnedWeights, resetPortfolio, forceEntry };
+  return { portfolio, closedTrades, predictions, tfMatrix, tradeMarkers, learnedWeights, activityLog, resetPortfolio, forceEntry };
 }

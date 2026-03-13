@@ -104,3 +104,12 @@ export interface TFBias {
   direction: PredictionDirection;
   score: number;        // 0–100
 }
+
+export interface LogEntry {
+  id: string;
+  timestamp: number;
+  type: 'trade_open' | 'trade_close' | 'learn' | 'system';
+  level: 'info' | 'success' | 'warning' | 'error';
+  message: string;
+  detail?: string;
+}
