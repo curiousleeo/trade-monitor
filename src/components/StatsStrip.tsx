@@ -98,13 +98,11 @@ function MarketSession() {
     if (!wrapRef.current) return;
     const r = wrapRef.current.getBoundingClientRect();
     const cardW = 296;
-    const idealLeft = r.left + r.width / 2;
     const margin = 8;
-    const clampedLeft = Math.min(
-      Math.max(idealLeft, cardW / 2 + margin),
-      window.innerWidth - cardW / 2 - margin,
-    );
-    setTooltipPos({ top: r.bottom + 6, left: clampedLeft });
+    // Calculate the left EDGE of the card (centered under trigger, clamped to viewport)
+    const rawLeft = r.left + r.width / 2 - cardW / 2;
+    const left = Math.min(Math.max(rawLeft, margin), window.innerWidth - cardW - margin);
+    setTooltipPos({ top: r.bottom + 6, left });
   };
   const hideTooltip = () => setTooltipPos(null);
 
@@ -130,7 +128,7 @@ function MarketSession() {
       {tooltipPos && (
         <div
           className="market-tooltip"
-          style={{ position: 'fixed', top: tooltipPos.top, left: tooltipPos.left, transform: 'translateX(-50%)' }}
+          style={{ position: 'fixed', top: tooltipPos.top, left: tooltipPos.left }}
         >
           {/* Card header */}
           <div className="market-tooltip-header">
