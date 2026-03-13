@@ -419,17 +419,17 @@ body {
 /* Market Session — hover card (position:fixed set inline to escape overflow:hidden) */
 .market-tooltip {
   z-index: 200;
-  background: var(--bg2);
+  background: var(--bg3);
   border: 1px solid var(--border2);
   border-radius: 6px;
-  padding: 12px 14px;
-  width: 280px;
+  padding: 14px 16px;
+  width: 296px;
   box-shadow: var(--shadow-lg);
   pointer-events: none;
 }
 .market-tooltip-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 8px; margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 6px;
 }
 .market-tooltip-header-left {
   display: flex; align-items: center; gap: 7px;
@@ -442,24 +442,24 @@ body {
   font-family: var(--font-ui); font-size: 13px; font-weight: 700;
 }
 .market-tooltip-time {
-  font-family: var(--font-mono); font-size: 9px; color: var(--text3);
-  text-align: right; line-height: 1.6; white-space: nowrap; flex-shrink: 0;
+  font-family: var(--font-mono); font-size: 9px; color: var(--text2);
+  text-align: right; line-height: 1.5; white-space: nowrap; flex-shrink: 0;
 }
 .market-tooltip-desc {
-  font-family: var(--font-ui); font-size: 11px; color: var(--text2);
-  line-height: 1.6; margin-bottom: 12px;
+  font-family: var(--font-ui); font-size: 11px; color: var(--text);
+  line-height: 1.65; margin-bottom: 12px; opacity: 0.75;
 }
 .market-tooltip-legend {
-  display: flex; gap: 10px; flex-wrap: wrap;
+  display: flex; gap: 6px 16px; flex-wrap: wrap;
   margin-bottom: 12px; padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
 .market-legend-item {
-  display: flex; align-items: center; gap: 4px;
-  font-family: var(--font-ui); font-size: 9px; color: var(--text3);
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  font-family: var(--font-ui); font-size: 10px; color: var(--text2);
 }
 .market-legend-item.active { color: var(--text); font-weight: 600; }
-.market-legend-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.market-legend-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
 /* Market Session — timeline bar */
 .market-timeline-track {

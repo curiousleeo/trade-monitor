@@ -97,7 +97,14 @@ function MarketSession() {
   const showTooltip = () => {
     if (!wrapRef.current) return;
     const r = wrapRef.current.getBoundingClientRect();
-    setTooltipPos({ top: r.bottom + 6, left: r.left + r.width / 2 });
+    const cardW = 296;
+    const idealLeft = r.left + r.width / 2;
+    const margin = 8;
+    const clampedLeft = Math.min(
+      Math.max(idealLeft, cardW / 2 + margin),
+      window.innerWidth - cardW / 2 - margin,
+    );
+    setTooltipPos({ top: r.bottom + 6, left: clampedLeft });
   };
   const hideTooltip = () => setTooltipPos(null);
 
