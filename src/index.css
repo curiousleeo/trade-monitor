@@ -730,67 +730,84 @@ body {
 .alert-remove:hover { color: var(--red); }
 
 /* ════════════════════════════════════════
-   AI PANEL
+   AI PANEL — scrollable dashboard (no sub-tabs)
 ════════════════════════════════════════ */
 .ai-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
 
-.ai-sub-tabs {
-  display: flex; flex-shrink: 0;
-  border-bottom: 1px solid var(--border2);
-  background: var(--bg3); padding: 0 8px; gap: 0;
-}
-.ai-sub-tab {
-  flex: 1; background: transparent; border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text3); font-family: var(--font-ui); font-size: 11px;
-  font-weight: 600; letter-spacing: 0.03em; padding: 7px 2px 5px;
-  cursor: pointer; text-transform: uppercase; text-align: center;
-  transition: color 0.1s, border-color 0.1s; white-space: nowrap;
-}
-.ai-sub-tab:hover { color: var(--text2); }
-.ai-sub-tab.active { color: var(--text); border-bottom-color: var(--accent); }
-[data-theme="light"] .ai-sub-tab.active { color: var(--text); border-bottom-color: var(--text); }
-
-/* Signals tab */
-.ai-signals-tab {
-  flex: 1; overflow-y: auto; overflow-x: clip;
-  padding: 8px; display: flex; flex-direction: column; gap: 8px;
+.ai-dashboard {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column; gap: 0;
   scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
 }
-.ai-signals-tab::-webkit-scrollbar { width: 3px; }
-.ai-signals-tab::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.ai-dashboard::-webkit-scrollbar { width: 3px; }
+.ai-dashboard::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-/* Force Entry button */
+/* ── Section Header ── */
+.apex-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 10px 5px;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+}
+.apex-section-label {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3);
+}
+.apex-section-meta {
+  font-family: var(--font-mono); font-size: 9px; color: var(--text4);
+}
+
+/* ── Portfolio Status Bar ── */
+.apex-portfolio-bar {
+  padding: 10px 10px 8px; background: var(--bg2);
+  border-bottom: 1px solid var(--border2);
+  display: flex; flex-direction: column; gap: 7px;
+}
+.apex-portfolio-top {
+  display: flex; align-items: center; gap: 8px;
+}
+.apex-bal-group { display: flex; flex-direction: column; gap: 1px; flex: 1; }
+.apex-bal-label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+.apex-bal-val   { font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: var(--text); }
+.apex-pnl-group { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.apex-pnl-val   { font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.apex-pnl-pct   { font-family: var(--font-mono); font-size: 10px; opacity: 0.75; }
+.apex-reset-btn {
+  background: transparent; border: 1px solid var(--border2); border-radius: 3px;
+  color: var(--text3); font-size: 12px; padding: 4px 7px; cursor: pointer;
+  transition: color 0.1s, border-color 0.1s; flex-shrink: 0;
+}
+.apex-reset-btn:hover { color: var(--red); border-color: var(--red); }
+.apex-portfolio-stats { display: flex; gap: 4px; flex-wrap: wrap; }
+.apex-stat-pill {
+  flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px;
+  background: var(--bg3); border-radius: 3px; padding: 5px 8px;
+}
+.apex-stat-label { font-size: 8px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+.apex-stat-val   { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.apex-progress-wrap { display: flex; flex-direction: column; gap: 3px; }
+.apex-progress-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--text3); font-family: var(--font-mono); }
+.apex-progress-track { height: 3px; background: var(--bg4); border-radius: 2px; overflow: hidden; }
+.apex-progress-fill  { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; min-width: 2px; }
+
+/* ── Force Entry button ── */
 .force-entry-btn {
-  width: 100%; padding: 6px 0;
+  width: calc(100% - 20px); margin: 0 10px; padding: 7px 0;
   background: color-mix(in srgb, var(--green) 8%, var(--bg3));
   border: 1px solid color-mix(in srgb, var(--green) 30%, transparent);
-  border-radius: 2px;
-  color: var(--green);
+  border-radius: 2px; color: var(--green);
   font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
-  cursor: pointer; transition: all 0.1s;
-  text-transform: uppercase;
+  cursor: pointer; transition: all 0.1s; text-transform: uppercase;
 }
 .force-entry-btn:hover {
-  background: var(--green);
-  color: #000; border-color: transparent;
-  transform: translateY(-1px);
+  background: var(--green); color: #000; border-color: transparent; transform: translateY(-1px);
 }
-.force-entry-btn:active { transform: translateY(0); box-shadow: none; }
-
-/* Trades tab */
-.ai-trades-tab {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
-  display: flex; flex-direction: column;
-  scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
-}
-.ai-trades-tab::-webkit-scrollbar { width: 3px; }
-.ai-trades-tab::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 0; }
+.force-entry-btn:active { transform: translateY(0); }
 
 /* ════════════════════════════════════════
    PREDICTION COIN PILLS
 ════════════════════════════════════════ */
-.pred-coin-row { display: flex; gap: 3px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; scrollbar-width: none; }
+.pred-coin-row { display: flex; gap: 3px; overflow-x: auto; flex-wrap: nowrap; padding: 0 10px 6px; scrollbar-width: none; }
 .pred-coin-row::-webkit-scrollbar { display: none; }
 .pred-coin-pill {
   flex: 0 0 auto; min-width: 48px; display: flex; flex-direction: column; gap: 1px;
@@ -810,7 +827,7 @@ body {
 ════════════════════════════════════════ */
 .prediction-card {
   border: 1px solid var(--border2); border-radius: 2px;
-  background: var(--bg3); overflow: hidden;
+  background: var(--bg3); overflow: hidden; margin: 0 10px;
 }
 .prediction-card--loading { padding: 16px; }
 .pred-loading-text { color: var(--text2); font-size: 11px; }
@@ -838,42 +855,31 @@ body {
   flex: 1; font-family: var(--font-mono); font-size: 10px; font-weight: 500;
   color: var(--text3);
 }
+.pred-conf-badge {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.prediction-card--up   .pred-conf-badge { color: var(--green); }
+.prediction-card--down .pred-conf-badge { color: var(--red); }
+.prediction-card--neutral .pred-conf-badge { color: var(--amber); }
 
-/* Data grid: conf + levels in a compact table */
-.pred-hero {
-  display: grid; grid-template-columns: 72px 1fr;
+/* Level grid — 4 items in a row */
+.pred-levels {
+  display: grid; grid-template-columns: repeat(4, 1fr);
   border-bottom: 1px solid var(--border2);
   background: var(--bg3);
 }
-.pred-conf-ring {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 10px 6px;
-  border-right: 1px solid var(--border);
-}
-.pred-conf-val {
-  font-family: var(--font-mono); font-size: 20px; font-weight: 700;
-  font-variant-numeric: tabular-nums; line-height: 1;
-}
-.prediction-card--up   .pred-conf-val { color: var(--green); }
-.prediction-card--down .pred-conf-val { color: var(--red); }
-.pred-conf-label {
-  font-size: 8px; font-weight: 600; color: var(--text3);
-  letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px;
-}
-
-.pred-levels-col {
-  padding: 6px 10px;
-  display: flex; flex-direction: column; gap: 4px;
-}
 .pred-level-row {
-  display: flex; align-items: baseline; justify-content: space-between;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 7px 8px; border-right: 1px solid var(--border);
 }
+.pred-level-row:last-child { border-right: none; }
 .pred-level-label {
-  font-family: var(--font-ui); font-size: 9px; font-weight: 600;
-  color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em;
+  font-family: var(--font-ui); font-size: 8px; font-weight: 700;
+  color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em;
 }
 .pred-level-val {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
   font-variant-numeric: tabular-nums; color: var(--text2);
 }
 
@@ -916,7 +922,10 @@ body {
   font-family: var(--font-ui); font-size: 9px; font-weight: 600; color: var(--text3);
   letter-spacing: 0.06em; text-transform: uppercase;
 }
-.tf-matrix-rows { display: flex; flex-direction: column; background: var(--bg2); }
+.tf-matrix-rows {
+  display: flex; flex-direction: column; background: var(--bg2);
+  margin: 0 10px; border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
+}
 .tf-row {
   display: flex; align-items: center; gap: 8px;
   padding: 4px 10px; border-bottom: 1px solid var(--border);
@@ -1027,6 +1036,8 @@ body {
   border-left: 2px solid transparent;
   background: var(--bg2);
   transition: background 0.1s;
+  margin: 0 10px 4px;
+  border-radius: 2px; border: 1px solid var(--border);
 }
 .trade-card:hover { background: var(--bg3); }
 .trade-card--open { border-left-color: var(--accent); }
@@ -1060,12 +1071,11 @@ body {
   font-variant-numeric: tabular-nums; color: var(--text2);
 }
 
-/* P&L line */
+/* P&L — now inline in trade card header */
 .trade-pnl {
   font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  padding-top: 4px; border-top: 1px solid var(--border);
+  margin-left: auto;
 }
-.trade-pnl::before { content: 'P&L  '; font-size: 8px; font-weight: 600; color: var(--text3); font-family: var(--font-ui); letter-spacing: 0.05em; text-transform: uppercase; }
 
 .trades-empty {
   padding: 20px 12px; text-align: center; color: var(--text3);
@@ -1092,7 +1102,7 @@ body {
 /* Activity feed */
 .log-feed {
   display: flex; flex-direction: column; gap: 2px;
-  margin-bottom: 4px;
+  margin: 0 10px 4px;
 }
 
 .log-entry {
@@ -1123,13 +1133,13 @@ body {
 
 .log-empty {
   font-family: var(--font-ui); font-size: 11px; color: var(--text4);
-  padding: 16px 4px; text-align: center;
+  padding: 16px 10px; text-align: center;
 }
 
 /* Weight table */
 .learn-weights-table {
   display: flex; flex-direction: column; gap: 0;
-  margin-bottom: 10px;
+  margin: 0 10px 4px;
   border: 1px solid var(--border); border-radius: 4px;
   overflow: hidden;
 }
