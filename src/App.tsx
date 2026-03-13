@@ -114,6 +114,12 @@ export default function App() {
     return () => el.removeEventListener('scroll', updateTickerScroll);
   }, [updateTickerScroll]);
 
+  // Re-check once ticker prices arrive (coins widen and may now overflow)
+  const hasTickerData = Object.values(tickers).some(t => t !== null);
+  useEffect(() => {
+    updateTickerScroll();
+  }, [hasTickerData, updateTickerScroll]);
+
   const scrollTicker = useCallback((dir: 'left' | 'right') => {
     tickerRef.current?.scrollBy({ left: dir === 'left' ? -220 : 220, behavior: 'smooth' });
   }, []);
