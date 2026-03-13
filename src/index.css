@@ -443,8 +443,9 @@ body {
 }
 .market-tooltip-time {
   font-family: var(--font-mono); font-size: 9px; color: var(--text2);
-  text-align: right; line-height: 1.5; white-space: nowrap; flex-shrink: 0;
+  text-align: right; line-height: 1.6; flex-shrink: 0;
 }
+.market-tooltip-time span { display: block; }
 .market-tooltip-desc {
   font-family: var(--font-ui); font-size: 11px; color: var(--text);
   line-height: 1.65; margin-bottom: 12px; opacity: 0.75;

@@ -58,14 +58,14 @@ function getSession() {
   return { name: 'Closed', color: '#787b86', minutesLeft: null };
 }
 
-function getETDateString(): string {
+function getETDateTime(): { date: string; time: string } {
   const now = new Date();
   const utc = now.getTime() + now.getTimezoneOffset() * 60000;
   const et  = new Date(utc + (isDST(now) ? -4 : -5) * 3600000);
-  return et.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    + ' · '
-    + et.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-    + ' ET';
+  return {
+    date: et.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    time: et.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) + ' ET',
+  };
 }
 
 function getSessionDesc(session: ReturnType<typeof getSession>): string {
@@ -82,14 +82,14 @@ function getSessionDesc(session: ReturnType<typeof getSession>): string {
 
 function MarketSession() {
   const [session,  setSession]  = useState(getSession);
-  const [etTime,   setEtTime]   = useState(getETDateString);
+  const [etTime,   setEtTime]   = useState(getETDateTime);
   const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = setInterval(() => {
       setSession(getSession());
-      setEtTime(getETDateString());
+      setEtTime(getETDateTime());
     }, 1000);
     return () => clearInterval(t);
   }, []);
@@ -136,7 +136,10 @@ function MarketSession() {
               <span className={`market-tooltip-icon${isLive ? ' market-tooltip-icon--live' : ''}`} style={{ color: session.color }}>◉</span>
               <span className="market-tooltip-session" style={{ color: session.color }}>{session.name}</span>
             </div>
-            <span className="market-tooltip-time">{etTime}</span>
+            <span className="market-tooltip-time">
+              <span>{etTime.date}</span>
+              <span>{etTime.time}</span>
+            </span>
           </div>
 
           {/* Description */}
