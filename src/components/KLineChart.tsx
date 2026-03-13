@@ -89,7 +89,7 @@ function buildStyles(theme: 'light' | 'dark') {
 const CANDLE_PANE = 'candle_pane';
 
 export function KLineChart({
-  candles, liveCandle, theme,
+  candles, liveCandle, coin, theme,
   prevDay, showEMA, showBOLL, showRSI, showMACD,
   tradeMarkers = [], openTrades = [],
   scrollToTime,
@@ -236,21 +236,35 @@ export function KLineChart({
     tpSlIds.current.forEach(id => chart.removeOverlay(id));
     tpSlIds.current = [];
 
-    openTrades.filter(t => t.status === 'OPEN').forEach(t => {
+    openTrades.filter(t => t.status === 'OPEN' && t.coin === coin).forEach(t => {
       const tpId = chart.createOverlay({
         name: 'horizontalStraightLine', lock: true,
+        needDefaultPointFigure: false,
+        needDefaultXAxisFigure: false,
+        needDefaultYAxisFigure: true,
         points: [{ timestamp: 0, value: t.takeProfit }],
-        styles: { line: { color: '#22c55e99', size: 1, style: 'dashed' } },
+        styles: {
+          line: { color: '#22c55e', size: 1, style: 'dashed' },
+          text: { color: '#ffffff', size: 10, weight: 'bold', backgroundColor: '#22c55e', borderColor: '#22c55e', paddingLeft: 4, paddingRight: 4, paddingTop: 2, paddingBottom: 2 },
+        },
+        extendData: `TP ${t.takeProfit >= 1000 ? t.takeProfit.toLocaleString(undefined, { maximumFractionDigits: 0 }) : t.takeProfit.toFixed(2)}`,
       } as any);
       const slId = chart.createOverlay({
         name: 'horizontalStraightLine', lock: true,
+        needDefaultPointFigure: false,
+        needDefaultXAxisFigure: false,
+        needDefaultYAxisFigure: true,
         points: [{ timestamp: 0, value: t.stopLoss }],
-        styles: { line: { color: '#ef444499', size: 1, style: 'dashed' } },
+        styles: {
+          line: { color: '#ef4444', size: 1, style: 'dashed' },
+          text: { color: '#ffffff', size: 10, weight: 'bold', backgroundColor: '#ef4444', borderColor: '#ef4444', paddingLeft: 4, paddingRight: 4, paddingTop: 2, paddingBottom: 2 },
+        },
+        extendData: `SL ${t.stopLoss >= 1000 ? t.stopLoss.toLocaleString(undefined, { maximumFractionDigits: 0 }) : t.stopLoss.toFixed(2)}`,
       } as any);
       if (typeof tpId === 'string') tpSlIds.current.push(tpId);
       if (typeof slId === 'string') tpSlIds.current.push(slId);
     });
-  }, [openTrades]);
+  }, [openTrades, coin]);
 
   // ── AI trade markers ─────────────────────────────────────────────────
   useEffect(() => {
