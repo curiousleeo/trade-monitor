@@ -400,6 +400,67 @@ body {
 }
 .fg-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
 
+/* Market Session */
+.market-session-wrap {
+  display: flex; align-items: center; gap: 8px;
+  cursor: default; position: relative;
+}
+.market-session-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.market-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 10px 12px;
+  width: 240px;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+}
+.market-tooltip-title {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-ui); font-size: 11px; font-weight: 600;
+  color: var(--text); margin-bottom: 4px;
+}
+.market-tooltip-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.market-tooltip-sub {
+  font-family: var(--font-ui); font-size: 10px; color: var(--text2);
+  margin-bottom: 10px;
+}
+.market-timeline {
+  margin-bottom: 6px;
+}
+.market-timeline-track {
+  position: relative; height: 6px; border-radius: 3px;
+  background: var(--bg4); overflow: hidden; margin-bottom: 4px;
+}
+.market-timeline-seg {
+  position: absolute; top: 0; height: 100%;
+}
+.market-timeline-now {
+  position: absolute; top: -1px; bottom: -1px;
+  width: 2px; background: #fff; border-radius: 1px;
+  transform: translateX(-50%);
+}
+.market-timeline-labels {
+  position: relative; height: 14px;
+}
+.market-timeline-label {
+  position: absolute; transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: 8px; color: var(--text3);
+}
+.market-tooltip-note {
+  font-family: var(--font-ui); font-size: 9px; color: var(--text4);
+  text-align: right; margin-top: 4px;
+}
+
 /* ════════════════════════════════════════
    MAIN LAYOUT
 ════════════════════════════════════════ */
