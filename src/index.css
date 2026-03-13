@@ -429,13 +429,8 @@ body {
   pointer-events: none;
 }
 .market-tooltip-header {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 8px; margin-bottom: 6px;
-  min-width: 0; /* prevents flex children from expanding the card */
-}
-.market-tooltip-header-left {
   display: flex; align-items: center; gap: 7px;
-  flex-shrink: 0; min-width: 0;
+  margin-bottom: 3px;
 }
 .market-tooltip-icon {
   font-size: 13px; line-height: 1; flex-shrink: 0;
@@ -446,9 +441,7 @@ body {
 }
 .market-tooltip-time {
   font-family: var(--font-mono); font-size: 9px; color: var(--text2);
-  text-align: right; line-height: 1.5;
-  flex-shrink: 1; min-width: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  margin-bottom: 10px; line-height: 1.4;
 }
 .market-tooltip-desc {
   font-family: var(--font-ui); font-size: 11px; color: var(--text);

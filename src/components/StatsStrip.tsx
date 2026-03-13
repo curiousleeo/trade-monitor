@@ -132,12 +132,10 @@ function MarketSession() {
         >
           {/* Card header */}
           <div className="market-tooltip-header">
-            <div className="market-tooltip-header-left">
-              <span className={`market-tooltip-icon${isLive ? ' market-tooltip-icon--live' : ''}`} style={{ color: session.color }}>◉</span>
-              <span className="market-tooltip-session" style={{ color: session.color }}>{session.name}</span>
-            </div>
-            <span className="market-tooltip-time">{etTime}</span>
+            <span className={`market-tooltip-icon${isLive ? ' market-tooltip-icon--live' : ''}`} style={{ color: session.color }}>◉</span>
+            <span className="market-tooltip-session" style={{ color: session.color }}>{session.name}</span>
           </div>
+          <div className="market-tooltip-time">{etTime}</div>
 
           {/* Description */}
           <div className="market-tooltip-desc">{getSessionDesc(session)}</div>
