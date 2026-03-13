@@ -133,9 +133,7 @@ export default function App() {
         </div>
 
         <div className={`ticker-wrap${canScrollLeft ? ' ticker-wrap--left' : ''}${canScrollRight ? ' ticker-wrap--right' : ''}`}>
-          {canScrollLeft && (
-            <button className="ticker-arrow ticker-arrow--left" onClick={() => scrollTicker('left')}>‹</button>
-          )}
+          <button className="ticker-arrow ticker-arrow--left" onClick={() => scrollTicker('left')}>‹</button>
           <div className="coin-cards" ref={tickerRef}>
             {COINS.map(c => (
               <CoinCard
@@ -147,9 +145,7 @@ export default function App() {
               />
             ))}
           </div>
-          {canScrollRight && (
-            <button className="ticker-arrow ticker-arrow--right" onClick={() => scrollTicker('right')}>›</button>
-          )}
+          <button className="ticker-arrow ticker-arrow--right" onClick={() => scrollTicker('right')}>›</button>
         </div>
 
         <div className="header-right">

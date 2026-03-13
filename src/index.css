@@ -170,8 +170,15 @@ body {
   background: transparent; border: none;
   color: var(--text2); font-size: 15px; line-height: 1;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: color 0.1s;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.15s, color 0.1s;
 }
+/* Show on hover over the whole ticker area */
+.ticker-wrap:hover .ticker-arrow--left  { opacity: 1; pointer-events: auto; }
+.ticker-wrap:hover .ticker-arrow--right { opacity: 1; pointer-events: auto; }
+/* Hide if no content to scroll in that direction */
+.ticker-wrap:not(.ticker-wrap--left)  .ticker-arrow--left  { opacity: 0 !important; pointer-events: none !important; }
+.ticker-wrap:not(.ticker-wrap--right) .ticker-arrow--right { opacity: 0 !important; pointer-events: none !important; }
 .ticker-arrow:hover { color: var(--text); }
 .ticker-arrow--left  { left: 0; }
 .ticker-arrow--right { right: 0; }
