@@ -251,19 +251,19 @@ export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, active
           className={`ai-sub-tab ${subTab === 'signals' ? 'active' : ''}`}
           onClick={() => setSubTab('signals')}
         >
-          📊 SIGNALS
+          Signals
         </button>
         <button
           className={`ai-sub-tab ${subTab === 'trades' ? 'active' : ''}`}
           onClick={() => setSubTab('trades')}
         >
-          📋 TRADES
+          Trades
         </button>
         <button
           className={`ai-sub-tab ${subTab === 'log' ? 'active' : ''}`}
           onClick={() => setSubTab('log')}
         >
-          🧠 LOG
+          Log
         </button>
       </div>
 

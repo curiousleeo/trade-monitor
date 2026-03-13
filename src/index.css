@@ -742,9 +742,9 @@ body {
 .ai-sub-tab {
   flex: 1; background: transparent; border: none;
   border-bottom: 2px solid transparent;
-  color: var(--text3); font-family: var(--font-ui); font-size: 10px;
-  font-weight: 600; letter-spacing: 0.04em; padding: 6px 4px 4px;
-  cursor: pointer; text-transform: uppercase;
+  color: var(--text3); font-family: var(--font-ui); font-size: 11px;
+  font-weight: 600; letter-spacing: 0.03em; padding: 7px 2px 5px;
+  cursor: pointer; text-transform: uppercase; text-align: center;
   transition: color 0.1s, border-color 0.1s; white-space: nowrap;
 }
 .ai-sub-tab:hover { color: var(--text2); }
