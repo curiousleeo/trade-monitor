@@ -88,7 +88,6 @@ function PortfolioBar({
           <span className="apex-pnl-val">{fmtUsd(totalPnl)}</span>
           <span className="apex-pnl-pct">{fmtPct(totalPnlPct)}</span>
         </div>
-        <button className="apex-reset-btn" onClick={() => { if (confirm('Reset APEX portfolio to $1,000?')) onReset(); }}>↺</button>
       </div>
 
       <div className="apex-portfolio-stats">
@@ -383,6 +382,15 @@ export function AIPanel({
               <div>Waiting for signal ≥ 65%…</div>
             </div>
           )}
+
+          <div className="reset-section">
+            <button
+              className="reset-portfolio-btn"
+              onClick={() => { if (confirm('Reset APEX portfolio back to $1,000?')) onReset(); }}
+            >
+              Reset Portfolio to $1,000
+            </button>
+          </div>
 
           <div style={{ height: 16 }} />
         </div>
