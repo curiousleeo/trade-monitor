@@ -148,8 +148,10 @@ body {
 }
 
 /* Coin cards — TradingView horizontal ticker */
-.coin-cards { display: flex; align-items: center; gap: 0; flex: 1; overflow-x: auto; scrollbar-width: none; }
-.coin-cards::-webkit-scrollbar { display: none; }
+.coin-cards { display: flex; align-items: center; gap: 0; flex: 1; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+.coin-cards::-webkit-scrollbar { height: 3px; }
+.coin-cards::-webkit-scrollbar-track { background: transparent; }
+.coin-cards::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
 .coin-card {
   display: flex; align-items: center; gap: 0;
