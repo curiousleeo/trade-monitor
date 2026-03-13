@@ -18,9 +18,9 @@
   --border2:   #c8cce0;
 
   --text:      #0d0f1a;
-  --text2:     #4a5070;
-  --text3:     #8a90b0;
-  --text4:     #bcc0d8;
+  --text2:     #3a4060;
+  --text3:     #6b7090;
+  --text4:     #9296b0;
 
   --accent:    #0057ff;
   --accent2:   #0040cc;
@@ -55,9 +55,9 @@
   --border2:   #363c4e;
 
   --text:      #d1d4dc;
-  --text2:     #787b86;
-  --text3:     #4c525e;
-  --text4:     #2f3241;
+  --text2:     #9199a8;
+  --text3:     #6b7280;
+  --text4:     #4c5568;
 
   /* Bright white — TradingView's own active-state color, zero competition with green/red */
   --accent:    #d1d4dc;
@@ -788,7 +788,7 @@ body {
   letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3);
 }
 .apex-section-meta {
-  font-family: var(--font-mono); font-size: 9px; color: var(--text4);
+  font-family: var(--font-mono); font-size: 9px; color: var(--text3);
 }
 
 /* ── Portfolio Status Bar ── */
