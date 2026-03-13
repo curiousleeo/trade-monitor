@@ -27,49 +27,62 @@ function toKLine(c: Candle) {
 
 function buildStyles(theme: 'light' | 'dark') {
   const dark = theme === 'dark';
+  // Colors aligned with CSS design tokens
+  const bg         = dark ? '#131722' : '#f5f6fa';
+  const gridLine   = dark ? '#1a1f2e' : '#eef0f8';
+  const axisLine   = dark ? '#2a2e39' : '#dde0f0';
+  const tickText   = dark ? '#787b86' : '#4a5070';
+  const crossLine  = dark ? '#363c4e' : '#c8cce0';
+  const crossBg    = dark ? '#1e2130' : '#eef0f8';
+  const crossText  = dark ? '#d1d4dc' : '#0d0f1a';
+  const tooltipTxt = dark ? '#787b86' : '#4a5070';
+  const upColor    = dark ? '#26a69a' : '#00a854';
+  const dnColor    = dark ? '#ef5350' : '#e0152e';
+  const neutColor  = dark ? '#4c525e' : '#8a90b0';
+  const monoFont   = "'JetBrains Mono','SF Mono','Fira Code','Consolas',monospace";
   return {
     grid: {
-      horizontal: { color: dark ? '#111827' : '#f3f4f6' },
-      vertical:   { color: dark ? '#111827' : '#f3f4f6' },
+      horizontal: { color: gridLine },
+      vertical:   { color: gridLine },
     },
     candle: {
       bar: {
-        upColor:          '#22c55e', downColor:          '#ef4444',
-        noChangeColor:    '#6b7280',
-        upBorderColor:    '#22c55e', downBorderColor:    '#ef4444',
-        noChangeBorderColor: '#6b7280',
-        upWickColor:      '#22c55e', downWickColor:      '#ef4444',
-        noChangeWickColor:'#6b7280',
+        upColor:             upColor,   downColor:             dnColor,
+        noChangeColor:       neutColor,
+        upBorderColor:       upColor,   downBorderColor:       dnColor,
+        noChangeBorderColor: neutColor,
+        upWickColor:         upColor,   downWickColor:         dnColor,
+        noChangeWickColor:   neutColor,
       },
       tooltip: {
         labels: ['T', 'O', 'H', 'L', 'C', 'V'],
-        text:   { color: dark ? '#9ca3af' : '#6b7280', size: 11, family: "'SF Mono','Fira Code',monospace" },
+        text:   { color: tooltipTxt, size: 11, family: monoFont },
       },
     },
     indicator: {
-      tooltip: { text: { color: dark ? '#9ca3af' : '#6b7280', size: 11, family: "'SF Mono','Fira Code',monospace" } },
+      tooltip: { text: { color: tooltipTxt, size: 11, family: monoFont } },
     },
     xAxis: {
-      axisLine: { color: dark ? '#1f2937' : '#e5e7eb' },
-      tickLine: { color: dark ? '#1f2937' : '#e5e7eb' },
-      tickText: { color: dark ? '#6b7280' : '#9ca3af', size: 11, family: "'SF Mono','Fira Code',monospace" },
+      axisLine: { color: axisLine },
+      tickLine: { color: axisLine },
+      tickText: { color: tickText, size: 11, family: monoFont },
     },
     yAxis: {
-      axisLine: { color: dark ? '#1f2937' : '#e5e7eb' },
-      tickLine: { color: dark ? '#1f2937' : '#e5e7eb' },
-      tickText: { color: dark ? '#6b7280' : '#9ca3af', size: 11, family: "'SF Mono','Fira Code',monospace" },
+      axisLine: { color: axisLine },
+      tickLine: { color: axisLine },
+      tickText: { color: tickText, size: 11, family: monoFont },
     },
     crosshair: {
       horizontal: {
-        line: { color: dark ? '#374151' : '#d1d5db' },
-        text: { backgroundColor: dark ? '#1f2937' : '#f3f4f6', color: dark ? '#e5e7eb' : '#374151', borderColor: dark ? '#374151' : '#d1d5db' },
+        line: { color: crossLine },
+        text: { backgroundColor: crossBg, color: crossText, borderColor: crossLine },
       },
       vertical: {
-        line: { color: dark ? '#374151' : '#d1d5db' },
-        text: { backgroundColor: dark ? '#1f2937' : '#f3f4f6', color: dark ? '#e5e7eb' : '#374151', borderColor: dark ? '#374151' : '#d1d5db' },
+        line: { color: crossLine },
+        text: { backgroundColor: crossBg, color: crossText, borderColor: crossLine },
       },
     },
-    background: { color: dark ? '#0a0a0a' : '#ffffff' },
+    background: { color: bg },
   };
 }
 
