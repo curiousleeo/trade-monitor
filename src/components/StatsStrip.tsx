@@ -58,23 +58,48 @@ function getSession() {
   return { name: 'Closed', color: '#787b86', minutesLeft: null };
 }
 
+function getETDateString(): string {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const et  = new Date(utc + (isDST(now) ? -4 : -5) * 3600000);
+  return et.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    + ' · '
+    + et.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+    + ' ET';
+}
+
+function getSessionDesc(session: ReturnType<typeof getSession>): string {
+  const h = session.minutesLeft !== null ? Math.floor(session.minutesLeft / 60) : 0;
+  const m = session.minutesLeft !== null ? session.minutesLeft % 60 : 0;
+  const t = `${h > 0 ? `${h}h ` : ''}${m}m`;
+  switch (session.name) {
+    case 'Pre-Market':  return `Pre-market trading is active. The regular market opens in ${t}.`;
+    case 'Market Open': return `The market is open for regular trading and will close in ${t}.`;
+    case 'After-Hours': return `After-hours trading is active. The session closes in ${t}.`;
+    default:            return 'The market is currently closed. Pre-market opens at 4:00 AM ET on weekdays.';
+  }
+}
+
 function MarketSession() {
-  const [session, setSession]     = useState(getSession);
-  const [visible, setVisible]     = useState(false);
-  const tooltipRef                = useRef<HTMLDivElement>(null);
-  const wrapRef                   = useRef<HTMLDivElement>(null);
+  const [session,  setSession]  = useState(getSession);
+  const [etTime,   setEtTime]   = useState(getETDateString);
+  const [visible,  setVisible]  = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const t = setInterval(() => setSession(getSession()), 30000);
+    const t = setInterval(() => {
+      setSession(getSession());
+      setEtTime(getETDateString());
+    }, 1000);
     return () => clearInterval(t);
   }, []);
 
   const { minutes } = getETMinutes();
-  const dayPct = (Math.min(minutes, 24 * 60) / (24 * 60)) * 100;
-
+  const dayPct   = (Math.min(minutes, 24 * 60) / (24 * 60)) * 100;
   const timeLeft = session.minutesLeft !== null
-    ? `${Math.floor(session.minutesLeft / 60)}h ${session.minutesLeft % 60}m left`
+    ? `${Math.floor(session.minutesLeft / 60)}h ${session.minutesLeft % 60}m`
     : null;
+  const isLive   = session.name !== 'Closed';
 
   return (
     <div
@@ -84,23 +109,34 @@ function MarketSession() {
       onMouseLeave={() => setVisible(false)}
     >
       <span className="stat-label">MARKET</span>
-      <span className="market-session-dot" style={{ background: session.color }} />
+      <span className={`market-session-dot${isLive ? ' market-session-dot--live' : ''}`} style={{ background: session.color }} />
       <span className="stat-value" style={{ color: session.color }}>{session.name}</span>
-      {timeLeft && <span className="stat-sub">{timeLeft}</span>}
+      {timeLeft && <span className="stat-sub">{timeLeft} left</span>}
 
       {visible && (
-        <div ref={tooltipRef} className="market-tooltip">
-          <div className="market-tooltip-title">
-            <span className="market-tooltip-dot" style={{ background: session.color }} />
-            US Market · <span style={{ color: session.color }}>{session.name}</span>
-          </div>
-          {session.minutesLeft !== null ? (
-            <div className="market-tooltip-sub">
-              Session ends in {Math.floor(session.minutesLeft / 60)}h {session.minutesLeft % 60}m
+        <div className="market-tooltip">
+          {/* Card header */}
+          <div className="market-tooltip-header">
+            <div className="market-tooltip-header-left">
+              <span className={`market-tooltip-icon${isLive ? ' market-tooltip-icon--live' : ''}`} style={{ color: session.color }}>◉</span>
+              <span className="market-tooltip-session" style={{ color: session.color }}>{session.name}</span>
             </div>
-          ) : (
-            <div className="market-tooltip-sub">Pre-market opens at 4:00 AM ET</div>
-          )}
+            <span className="market-tooltip-time">{etTime}</span>
+          </div>
+
+          {/* Description */}
+          <div className="market-tooltip-desc">{getSessionDesc(session)}</div>
+
+          {/* Session legend */}
+          <div className="market-tooltip-legend">
+            {SESSIONS.map(s => (
+              <div key={s.name} className={`market-legend-item${session.name === s.name ? ' active' : ''}`}>
+                <span className="market-legend-dot" style={{ background: s.color }} />
+                <span>{s.name}</span>
+              </div>
+            ))}
+          </div>
+
           {/* Timeline bar */}
           <div className="market-timeline">
             <div className="market-timeline-track">
@@ -119,7 +155,6 @@ function MarketSession() {
               ))}
             </div>
           </div>
-          <div className="market-tooltip-note">Times in US Eastern (ET)</div>
         </div>
       )}
     </div>
