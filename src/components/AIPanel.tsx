@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Coin, Prediction, TFBias, TickerData, Trade } from '../types';
 import { StoredPortfolio } from '../lib/db';
 
@@ -282,6 +283,7 @@ export function AIPanel({
   portfolio, closedTrades, predictions, tfMatrix, activeCoin,
   tickers, onReset, onForceEntry,
 }: Props) {
+  const [tab, setTab] = useState<'signals' | 'trades'>('signals');
   const pred = predictions[activeCoin];
 
   const unrealizedPnl = portfolio.openTrades.reduce((sum, t) => {
@@ -296,72 +298,95 @@ export function AIPanel({
 
   return (
     <div className="ai-panel">
-      <div className="ai-dashboard">
 
-        {/* ── 1. Portfolio Status ─────────────────────── */}
-        <PortfolioBar
-          portfolio={portfolio}
-          closedTrades={closedTrades}
-          unrealizedPnl={unrealizedPnl}
-          totalPnl={totalPnl}
-          totalPnlPct={totalPnlPct}
-          onReset={onReset}
-        />
-
-        {/* ── 2. Coin Scanner ────────────────────────── */}
-        <SectionHeader label="COIN SCANNER" />
-        <div className="pred-coin-row">
-          {ALL_COINS.map(c => {
-            const p = predictions[c];
-            return (
-              <div key={c} className={`pred-coin-pill ${directionClass(p?.direction ?? 'NEUTRAL')} ${c === activeCoin ? 'active' : ''}`}>
-                <span>{c}</span>
-                <span>{p ? `${directionIcon(p.direction)} ${p.confidence.toFixed(0)}%` : '…'}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ── 3. Active Prediction ───────────────────── */}
-        <SectionHeader label="PREDICTION" meta={activeCoin} />
-        <PredictionCard pred={pred} coin={activeCoin} />
-
-        {pred && pred.direction !== 'NEUTRAL' && !portfolio.openTrades.some(t => t.coin === activeCoin) && (
-          <button className="force-entry-btn" onClick={() => onForceEntry(activeCoin)}>
-            ⚡ FORCE ENTRY — {pred.direction} {activeCoin}
-          </button>
-        )}
-
-        {/* ── 4. TF Confluence ───────────────────────── */}
-        {tfMatrix.length > 0 && (
-          <>
-            <SectionHeader label="TIMEFRAME CONFLUENCE" />
-            <TFMatrix matrix={tfMatrix} />
-          </>
-        )}
-
-        {/* ── 5. Open Positions ──────────────────────── */}
-        {portfolio.openTrades.length > 0 && (
-          <>
-            <SectionHeader label="OPEN POSITIONS" meta={String(portfolio.openTrades.length)} />
-            {portfolio.openTrades.map(t => (
-              <TradeCard key={t.id} trade={t} currentPrice={tickers[t.coin]?.price ?? null} />
-            ))}
-          </>
-        )}
-
-        {/* ── 6. Closed Trade History ─────────────────── */}
-        {closedTrades.length > 0 && (
-          <>
-            <SectionHeader label="TRADE HISTORY" meta={`${closedTrades.length} trades`} />
-            {closedTrades.slice(0, 20).map(t => (
-              <TradeCard key={t.id} trade={t} currentPrice={null} />
-            ))}
-          </>
-        )}
-
-        <div style={{ height: 24 }} />
+      {/* ── Tab bar ── */}
+      <div className="ai-tab-bar">
+        <button className={`ai-tab ${tab === 'signals' ? 'active' : ''}`} onClick={() => setTab('signals')}>
+          Signals
+        </button>
+        <button className={`ai-tab ${tab === 'trades' ? 'active' : ''}`} onClick={() => setTab('trades')}>
+          Trades
+          {portfolio.openTrades.length > 0 && (
+            <span className="ai-tab-badge">{portfolio.openTrades.length}</span>
+          )}
+        </button>
       </div>
+
+      {/* ── Signals tab ── */}
+      {tab === 'signals' && (
+        <div className="ai-tab-content">
+          <SectionHeader label="COIN SCANNER" />
+          <div className="pred-coin-row">
+            {ALL_COINS.map(c => {
+              const p = predictions[c];
+              return (
+                <div key={c} className={`pred-coin-pill ${directionClass(p?.direction ?? 'NEUTRAL')} ${c === activeCoin ? 'active' : ''}`}>
+                  <span>{c}</span>
+                  <span>{p ? `${directionIcon(p.direction)} ${p.confidence.toFixed(0)}%` : '…'}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <SectionHeader label="PREDICTION" meta={activeCoin} />
+          <PredictionCard pred={pred} coin={activeCoin} />
+
+          {pred && pred.direction !== 'NEUTRAL' && !portfolio.openTrades.some(t => t.coin === activeCoin) && (
+            <button className="force-entry-btn" onClick={() => onForceEntry(activeCoin)}>
+              ⚡ FORCE ENTRY — {pred.direction} {activeCoin}
+            </button>
+          )}
+
+          {tfMatrix.length > 0 && (
+            <>
+              <SectionHeader label="TIMEFRAME CONFLUENCE" />
+              <TFMatrix matrix={tfMatrix} />
+            </>
+          )}
+
+          <div style={{ height: 16 }} />
+        </div>
+      )}
+
+      {/* ── Trades tab ── */}
+      {tab === 'trades' && (
+        <div className="ai-tab-content">
+          <PortfolioBar
+            portfolio={portfolio}
+            closedTrades={closedTrades}
+            unrealizedPnl={unrealizedPnl}
+            totalPnl={totalPnl}
+            totalPnlPct={totalPnlPct}
+            onReset={onReset}
+          />
+
+          {portfolio.openTrades.length > 0 && (
+            <>
+              <SectionHeader label="OPEN POSITIONS" meta={String(portfolio.openTrades.length)} />
+              {portfolio.openTrades.map(t => (
+                <TradeCard key={t.id} trade={t} currentPrice={tickers[t.coin]?.price ?? null} />
+              ))}
+            </>
+          )}
+
+          {closedTrades.length > 0 && (
+            <>
+              <SectionHeader label="HISTORY" meta={`${closedTrades.length} trades`} />
+              {closedTrades.slice(0, 20).map(t => (
+                <TradeCard key={t.id} trade={t} currentPrice={null} />
+              ))}
+            </>
+          )}
+
+          {portfolio.openTrades.length === 0 && closedTrades.length === 0 && (
+            <div className="trades-empty">
+              <div>Waiting for signal ≥ 65%…</div>
+            </div>
+          )}
+
+          <div style={{ height: 16 }} />
+        </div>
+      )}
     </div>
   );
 }

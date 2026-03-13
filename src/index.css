@@ -743,13 +743,38 @@ body {
 ════════════════════════════════════════ */
 .ai-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
 
-.ai-dashboard {
+/* ── 2-tab bar ── */
+.ai-tab-bar {
+  display: flex; flex-shrink: 0;
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg2);
+}
+.ai-tab {
+  flex: 1; background: transparent; border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text3); font-family: var(--font-ui);
+  font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  padding: 9px 0 7px; cursor: pointer; text-transform: uppercase;
+  transition: color 0.1s, border-color 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.ai-tab:hover { color: var(--text2); }
+.ai-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+[data-theme="light"] .ai-tab.active { border-bottom-color: var(--text); }
+.ai-tab-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  background: var(--accent); color: #fff;
+  padding: 1px 5px; border-radius: 8px; line-height: 1.4;
+}
+
+/* ── Tab content (scrollable) ── */
+.ai-tab-content {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   display: flex; flex-direction: column; gap: 0;
   scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
 }
-.ai-dashboard::-webkit-scrollbar { width: 3px; }
-.ai-dashboard::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.ai-tab-content::-webkit-scrollbar { width: 3px; }
+.ai-tab-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
 /* ── Section Header ── */
 .apex-section-header {
