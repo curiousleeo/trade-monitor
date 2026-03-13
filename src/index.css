@@ -829,38 +829,37 @@ body {
 }
 
 .portfolio-hero {
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--border);
-  display: flex; align-items: baseline; gap: 10px;
+  display: flex; flex-direction: column; gap: 3px;
 }
 .portfolio-hero-label {
   font-family: var(--font-ui); font-size: 9px; font-weight: 600;
-  color: var(--text3); letter-spacing: 0.05em; text-transform: uppercase;
-  flex-shrink: 0;
+  color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase;
 }
 .portfolio-hero-balance {
-  font-family: var(--font-mono); font-size: 16px; font-weight: 700;
+  font-family: var(--font-mono); font-size: 20px; font-weight: 700;
   font-variant-numeric: tabular-nums; color: var(--text);
+  line-height: 1.1;
 }
 .portfolio-hero-pnl {
   font-family: var(--font-mono); font-size: 11px; font-weight: 500;
-  font-variant-numeric: tabular-nums; margin-left: auto;
+  font-variant-numeric: tabular-nums;
 }
 
 .portfolio-stats {
   display: grid; grid-template-columns: 1fr 1fr;
-  padding: 6px 10px; gap: 5px 12px;
+  padding: 8px 12px; gap: 8px 8px;
   border-bottom: 1px solid var(--border);
 }
-.portfolio-stat { display: flex; align-items: baseline; gap: 6px; }
+.portfolio-stat { display: flex; flex-direction: column; gap: 2px; }
 .portfolio-label {
   font-family: var(--font-ui); font-size: 9px; font-weight: 600;
-  color: var(--text3); letter-spacing: 0.04em; text-transform: uppercase;
-  flex-shrink: 0;
+  color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase;
 }
 .portfolio-val {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  font-variant-numeric: tabular-nums; color: var(--text);
 }
 
 .portfolio-progress-wrap {

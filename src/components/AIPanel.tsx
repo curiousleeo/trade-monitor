@@ -16,7 +16,8 @@ interface Props {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function fmtUsd(v: number, decimals?: number): string {
-  const d = decimals ?? (v >= 100 ? 0 : v >= 1 ? 2 : v >= 0.01 ? 4 : 6);
+  const abs = Math.abs(v);
+  const d = decimals ?? (abs >= 100 ? 2 : abs >= 1 ? 2 : abs >= 0.01 ? 4 : 6);
   return `$${v.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d })}`;
 }
 
