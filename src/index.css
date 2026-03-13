@@ -424,6 +424,8 @@ body {
   border-radius: 6px;
   padding: 14px 16px;
   width: 296px;
+  max-width: calc(100vw - 16px);
+  overflow: hidden;
   box-shadow: var(--shadow-lg);
   pointer-events: none;
 }
@@ -443,12 +445,12 @@ body {
 }
 .market-tooltip-time {
   font-family: var(--font-mono); font-size: 9px; color: var(--text2);
-  text-align: right; line-height: 1.6; flex-shrink: 0;
+  text-align: right; line-height: 1.5; white-space: nowrap; flex-shrink: 0;
 }
-.market-tooltip-time span { display: block; }
 .market-tooltip-desc {
   font-family: var(--font-ui); font-size: 11px; color: var(--text);
   line-height: 1.65; margin-bottom: 12px; opacity: 0.75;
+  overflow-wrap: break-word; word-break: break-word;
 }
 .market-tooltip-legend {
   display: flex; gap: 6px 16px; flex-wrap: wrap;

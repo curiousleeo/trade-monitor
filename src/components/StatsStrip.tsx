@@ -58,14 +58,14 @@ function getSession() {
   return { name: 'Closed', color: '#787b86', minutesLeft: null };
 }
 
-function getETDateTime(): { date: string; time: string } {
+function getETDateTime(): string {
   const now = new Date();
   const utc = now.getTime() + now.getTimezoneOffset() * 60000;
   const et  = new Date(utc + (isDST(now) ? -4 : -5) * 3600000);
-  return {
-    date: et.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    time: et.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) + ' ET',
-  };
+  return et.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    + ' · '
+    + et.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+    + ' ET';
 }
 
 function getSessionDesc(session: ReturnType<typeof getSession>): string {
@@ -136,10 +136,7 @@ function MarketSession() {
               <span className={`market-tooltip-icon${isLive ? ' market-tooltip-icon--live' : ''}`} style={{ color: session.color }}>◉</span>
               <span className="market-tooltip-session" style={{ color: session.color }}>{session.name}</span>
             </div>
-            <span className="market-tooltip-time">
-              <span>{etTime.date}</span>
-              <span>{etTime.time}</span>
-            </span>
+            <span className="market-tooltip-time">{etTime}</span>
           </div>
 
           {/* Description */}
