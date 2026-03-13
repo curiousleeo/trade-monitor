@@ -128,7 +128,7 @@ function MarketSession() {
       {tooltipPos && (
         <div
           className="market-tooltip"
-          style={{ position: 'fixed', top: tooltipPos.top, left: tooltipPos.left }}
+          style={{ position: 'fixed', top: tooltipPos.top, left: tooltipPos.left, width: 296, maxWidth: 'calc(100vw - 16px)' }}
         >
           {/* Card header */}
           <div className="market-tooltip-header">

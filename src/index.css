@@ -430,10 +430,12 @@ body {
 }
 .market-tooltip-header {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 8px; margin-bottom: 6px; overflow: hidden;
+  gap: 8px; margin-bottom: 6px;
+  min-width: 0; /* prevents flex children from expanding the card */
 }
 .market-tooltip-header-left {
-  display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 7px;
+  flex-shrink: 0; min-width: 0;
 }
 .market-tooltip-icon {
   font-size: 13px; line-height: 1; flex-shrink: 0;
