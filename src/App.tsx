@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { KLineChart }       from './components/KLineChart';
 import { CoinCard }        from './components/CoinCard';
 import { StatsStrip }      from './components/StatsStrip';
@@ -95,6 +95,29 @@ export default function App() {
   });
 
 
+  const tickerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft,  setCanScrollLeft]  = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const updateTickerScroll = useCallback(() => {
+    const el = tickerRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = tickerRef.current;
+    if (!el) return;
+    updateTickerScroll();
+    el.addEventListener('scroll', updateTickerScroll, { passive: true });
+    return () => el.removeEventListener('scroll', updateTickerScroll);
+  }, [updateTickerScroll]);
+
+  const scrollTicker = useCallback((dir: 'left' | 'right') => {
+    tickerRef.current?.scrollBy({ left: dir === 'left' ? -220 : 220, behavior: 'smooth' });
+  }, []);
+
   const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
 
@@ -109,16 +132,24 @@ export default function App() {
           <span className="brand-apex">AI Terminal</span>
         </div>
 
-        <div className="coin-cards">
-          {COINS.map(c => (
-            <CoinCard
-              key={c}
-              coin={c}
-              ticker={tickers[c]}
-              active={coin === c}
-              onClick={setCoin}
-            />
-          ))}
+        <div className={`ticker-wrap${canScrollLeft ? ' ticker-wrap--left' : ''}${canScrollRight ? ' ticker-wrap--right' : ''}`}>
+          {canScrollLeft && (
+            <button className="ticker-arrow ticker-arrow--left" onClick={() => scrollTicker('left')}>‹</button>
+          )}
+          <div className="coin-cards" ref={tickerRef}>
+            {COINS.map(c => (
+              <CoinCard
+                key={c}
+                coin={c}
+                ticker={tickers[c]}
+                active={coin === c}
+                onClick={setCoin}
+              />
+            ))}
+          </div>
+          {canScrollRight && (
+            <button className="ticker-arrow ticker-arrow--right" onClick={() => scrollTicker('right')}>›</button>
+          )}
         </div>
 
         <div className="header-right">
