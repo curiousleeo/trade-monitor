@@ -59,9 +59,9 @@
   --text3:     #4c525e;
   --text4:     #2f3241;
 
-  /* TradingView blue — understated, professional */
-  --accent:    #2962ff;
-  --accent2:   #1e4dd8;
+  /* Neutral silver — no blue, matches the charcoal terminal feel */
+  --accent:    #8b95a8;
+  --accent2:   #6e7a8e;
   --green:     #26a69a;
   --red:       #ef5350;
   --amber:     #f59f00;
