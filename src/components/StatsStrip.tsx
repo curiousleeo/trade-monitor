@@ -83,7 +83,7 @@ function getSessionDesc(session: ReturnType<typeof getSession>): string {
 function MarketSession() {
   const [session,  setSession]  = useState(getSession);
   const [etTime,   setEtTime]   = useState(getETDateString);
-  const [visible,  setVisible]  = useState(false);
+  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -93,6 +93,13 @@ function MarketSession() {
     }, 1000);
     return () => clearInterval(t);
   }, []);
+
+  const showTooltip = () => {
+    if (!wrapRef.current) return;
+    const r = wrapRef.current.getBoundingClientRect();
+    setTooltipPos({ top: r.bottom + 6, left: r.left + r.width / 2 });
+  };
+  const hideTooltip = () => setTooltipPos(null);
 
   const { minutes } = getETMinutes();
   const dayPct   = (Math.min(minutes, 24 * 60) / (24 * 60)) * 100;
@@ -105,16 +112,19 @@ function MarketSession() {
     <div
       ref={wrapRef}
       className="market-session-wrap"
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
+      onMouseEnter={showTooltip}
+      onMouseLeave={hideTooltip}
     >
       <span className="stat-label">MARKET</span>
       <span className={`market-session-dot${isLive ? ' market-session-dot--live' : ''}`} style={{ background: session.color }} />
       <span className="stat-value" style={{ color: session.color }}>{session.name}</span>
       {timeLeft && <span className="stat-sub">{timeLeft} left</span>}
 
-      {visible && (
-        <div className="market-tooltip">
+      {tooltipPos && (
+        <div
+          className="market-tooltip"
+          style={{ position: 'fixed', top: tooltipPos.top, left: tooltipPos.left, transform: 'translateX(-50%)' }}
+        >
           {/* Card header */}
           <div className="market-tooltip-header">
             <div className="market-tooltip-header-left">

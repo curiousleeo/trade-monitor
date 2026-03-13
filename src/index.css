@@ -416,12 +416,8 @@ body {
   50%       { opacity: 0.35; }
 }
 
-/* Market Session — hover card */
+/* Market Session — hover card (position:fixed set inline to escape overflow:hidden) */
 .market-tooltip {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
   z-index: 200;
   background: var(--bg2);
   border: 1px solid var(--border2);
