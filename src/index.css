@@ -329,20 +329,18 @@ body {
 ════════════════════════════════════════ */
 .stats-strip {
   display: flex; align-items: center;
-  height: 24px; flex-shrink: 0;
+  height: 28px; flex-shrink: 0;
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  padding: 0 12px;
-  overflow-x: auto; overflow-y: hidden; gap: 0;
-}
-[data-theme="dark"] .stats-strip {
   background: var(--bg2);
+  padding: 0 14px;
+  overflow-x: auto; overflow-y: hidden; gap: 0;
+  scrollbar-width: none;
 }
-.stats-strip::-webkit-scrollbar { height: 0; }
+.stats-strip::-webkit-scrollbar { display: none; }
 
 .stat-item {
-  display: flex; align-items: center; gap: 6px;
-  padding: 0 12px; height: 100%;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 16px; height: 100%;
   border-right: 1px solid var(--border);
   white-space: nowrap; flex-shrink: 0;
 }
@@ -350,20 +348,23 @@ body {
 
 .stat-label {
   font-family: var(--font-ui); font-size: 9px; font-weight: 600;
-  color: var(--text3); letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase;
 }
 .stat-value {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
-  font-variant-numeric: tabular-nums; color: var(--text2);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  font-variant-numeric: tabular-nums; color: var(--text);
 }
-.stat-sub { font-family: var(--font-ui); font-size: 10px; color: var(--text3); }
+.stat-sub {
+  font-family: var(--font-ui); font-size: 10px; color: var(--text3);
+  padding-left: 2px;
+}
 
 /* F&G gauge */
 .fg-bar-track {
-  width: 56px; height: 3px;
-  background: var(--bg4); border-radius: 99px; overflow: hidden; flex-shrink: 0;
+  width: 52px; height: 3px;
+  background: var(--bg4); border-radius: 2px; overflow: hidden; flex-shrink: 0;
 }
-.fg-bar-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+.fg-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
 
 /* ════════════════════════════════════════
    MAIN LAYOUT
