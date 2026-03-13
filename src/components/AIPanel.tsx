@@ -96,53 +96,48 @@ function PredictionCard({ pred, coin }: { pred: Prediction | null; coin: Coin })
   }
 
   const dc = directionClass(pred.direction);
+  const rr = (Math.abs(pred.targetPrice - pred.entryZone[0]) / Math.abs(pred.stopPrice - pred.entryZone[0])).toFixed(1);
 
   return (
     <div className={`prediction-card prediction-card--${dc}`}>
-      {/* Header row */}
       <div className="pred-header">
         <div className="pred-dir-badge" data-dir={pred.direction}>
           {directionIcon(pred.direction)} {pred.direction}
         </div>
         <div className="pred-coin">{coin} / USDT · {pred.timeframe}</div>
-        <div className="pred-confidence">
+      </div>
+
+      <div className="pred-hero">
+        <div className="pred-conf-ring">
           <span className="pred-conf-val">{pred.confidence.toFixed(0)}</span>
-          <span className="pred-conf-label">% conf</span>
+          <span className="pred-conf-label">% CONF</span>
+        </div>
+        <div className="pred-levels-col">
+          <div className="pred-level-row">
+            <span className="pred-level-label">Entry</span>
+            <span className="pred-level-val">{fmtUsd(pred.entryZone[0])}</span>
+          </div>
+          <div className="pred-level-row">
+            <span className="pred-level-label">Target</span>
+            <span className="pred-level-val up">{fmtUsd(pred.targetPrice)}</span>
+          </div>
+          <div className="pred-level-row">
+            <span className="pred-level-label">Stop</span>
+            <span className="pred-level-val down">{fmtUsd(pred.stopPrice)}</span>
+          </div>
+          <div className="pred-level-row">
+            <span className="pred-level-label">R:R</span>
+            <span className="pred-level-val">1:{rr}</span>
+          </div>
         </div>
       </div>
 
-      {/* Levels */}
-      <div className="pred-levels">
-        <div className="pred-level">
-          <span className="pred-level-label">Entry</span>
-          <span className="pred-level-val">
-            {fmtUsd(pred.entryZone[0])}–{fmtUsd(pred.entryZone[1])}
-          </span>
-        </div>
-        <div className="pred-level">
-          <span className="pred-level-label">Target</span>
-          <span className="pred-level-val up">{fmtUsd(pred.targetPrice)}</span>
-        </div>
-        <div className="pred-level">
-          <span className="pred-level-label">Stop</span>
-          <span className="pred-level-val down">{fmtUsd(pred.stopPrice)}</span>
-        </div>
-        <div className="pred-level">
-          <span className="pred-level-label">R:R</span>
-          <span className="pred-level-val">
-            1:{(Math.abs(pred.targetPrice - pred.entryZone[0]) / Math.abs(pred.stopPrice - pred.entryZone[0])).toFixed(1)}
-          </span>
-        </div>
-      </div>
-
-      {/* Signal bars */}
       <div className="pred-signals">
         {pred.signals.map(s => (
           <SignalBar key={s.name} {...s} />
         ))}
       </div>
 
-      {/* Reasoning */}
       <div className="pred-reasoning">{pred.reasoning}</div>
     </div>
   );
@@ -296,36 +291,45 @@ export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, active
         <div className="ai-trades-tab">
           {/* Portfolio summary */}
           <div className="portfolio-summary">
-            <div className="portfolio-row">
-              <span className="portfolio-label">Balance</span>
-              <span className="portfolio-val">{fmtUsd(portfolio.balance)}</span>
+            <div className="portfolio-hero">
+              <div className="portfolio-hero-label">Apex Portfolio</div>
+              <div className="portfolio-hero-balance">{fmtUsd(portfolio.balance)}</div>
+              <div className={`portfolio-hero-pnl ${totalPnl >= 0 ? 'up' : 'down'}`}>
+                {fmtUsd(totalPnl)} · {fmtPct(totalPnlPct)}
+              </div>
             </div>
-            <div className="portfolio-row">
-              <span className="portfolio-label">Total P&L</span>
-              <span className={`portfolio-val ${totalPnl >= 0 ? 'up' : 'down'}`}>
-                {fmtUsd(totalPnl)} ({fmtPct(totalPnlPct)})
-              </span>
+            <div className="portfolio-stats">
+              <div className="portfolio-stat">
+                <span className="portfolio-label">Win Rate</span>
+                <span className="portfolio-val">{winRate(closedTrades)}</span>
+              </div>
+              <div className="portfolio-stat">
+                <span className="portfolio-label">Open Trades</span>
+                <span className="portfolio-val">{portfolio.openTrades.length}</span>
+              </div>
+              <div className="portfolio-stat">
+                <span className="portfolio-label">Realized P&L</span>
+                <span className={`portfolio-val ${realizedPnl >= 0 ? 'up' : 'down'}`}>{fmtUsd(realizedPnl)}</span>
+              </div>
+              <div className="portfolio-stat">
+                <span className="portfolio-label">Unrealized</span>
+                <span className={`portfolio-val ${unrealizedPnl >= 0 ? 'up' : 'down'}`}>{fmtUsd(unrealizedPnl)}</span>
+              </div>
             </div>
-            <div className="portfolio-row">
-              <span className="portfolio-label">Win Rate</span>
-              <span className="portfolio-val">{winRate(closedTrades)}</span>
-            </div>
-            <div className="portfolio-row">
-              <span className="portfolio-label">Pred Accuracy</span>
-              <span className="portfolio-val">{predAccuracy(closedTrades)}</span>
-            </div>
-            {/* $1k → $100k progress */}
-            <div className="portfolio-progress">
+            <div className="portfolio-progress-wrap">
               <div className="portfolio-progress-label">
                 <span>$1K → $100K Challenge</span>
-                <span>{progress.toFixed(2)}%</span>
+                <span>{progress.toFixed(3)}%</span>
               </div>
               <div className="portfolio-progress-track">
                 <div className="portfolio-progress-fill" style={{ width: `${Math.min(100, progress)}%` }} />
               </div>
+              <div className="portfolio-progress-milestones">
+                <span>$1K</span><span>$10K</span><span>$50K</span><span>$100K</span>
+              </div>
             </div>
             <button className="reset-btn" onClick={() => { if (confirm('Reset APEX portfolio to $1,000?')) onReset(); }}>
-              Reset Portfolio
+              ↺ Reset Portfolio
             </button>
           </div>
 
