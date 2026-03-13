@@ -59,9 +59,9 @@
   --text3:     #4c525e;
   --text4:     #2f3241;
 
-  /* Neutral silver — no blue, matches the charcoal terminal feel */
-  --accent:    #8b95a8;
-  --accent2:   #6e7a8e;
+  /* Bright white — TradingView's own active-state color, zero competition with green/red */
+  --accent:    #d1d4dc;
+  --accent2:   #9199a8;
   --green:     #26a69a;
   --red:       #ef5350;
   --amber:     #f59f00;
