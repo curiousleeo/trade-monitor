@@ -779,9 +779,9 @@ body {
 /* ── Section Header ── */
 .apex-section-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 10px 5px;
+  padding: 14px 12px 7px;
   border-top: 1px solid var(--border);
-  margin-top: 2px;
+  margin-top: 4px;
 }
 .apex-section-label {
   font-family: var(--font-ui); font-size: 9px; font-weight: 700;
@@ -793,9 +793,9 @@ body {
 
 /* ── Portfolio Status Bar ── */
 .apex-portfolio-bar {
-  padding: 10px 10px 8px; background: var(--bg2);
+  padding: 14px 12px 12px; background: var(--bg2);
   border-bottom: 1px solid var(--border2);
-  display: flex; flex-direction: column; gap: 7px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 .apex-portfolio-top {
   display: flex; align-items: center; gap: 8px;
@@ -826,7 +826,7 @@ body {
 
 /* ── Force Entry button ── */
 .force-entry-btn {
-  width: calc(100% - 20px); margin: 0 10px; padding: 7px 0;
+  width: calc(100% - 24px); margin: 8px 12px 0; padding: 9px 0;
   background: color-mix(in srgb, var(--green) 8%, var(--bg3));
   border: 1px solid color-mix(in srgb, var(--green) 30%, transparent);
   border-radius: 2px; color: var(--green);
@@ -841,11 +841,11 @@ body {
 /* ════════════════════════════════════════
    PREDICTION COIN PILLS
 ════════════════════════════════════════ */
-.pred-coin-row { display: flex; gap: 3px; overflow-x: auto; flex-wrap: nowrap; padding: 0 10px 6px; scrollbar-width: none; }
+.pred-coin-row { display: flex; gap: 4px; overflow-x: auto; flex-wrap: nowrap; padding: 2px 12px 10px; scrollbar-width: none; }
 .pred-coin-row::-webkit-scrollbar { display: none; }
 .pred-coin-pill {
-  flex: 0 0 auto; min-width: 48px; display: flex; flex-direction: column; gap: 1px;
-  padding: 4px 7px; border-radius: 2px; border: 1px solid var(--border);
+  flex: 0 0 auto; min-width: 52px; display: flex; flex-direction: column; gap: 2px;
+  padding: 6px 8px; border-radius: 3px; border: 1px solid var(--border);
   background: transparent; font-family: var(--font-ui); font-size: 9px; font-weight: 600;
   color: var(--text3);
 }
@@ -860,8 +860,8 @@ body {
    PREDICTION CARD — flat TradingView style
 ════════════════════════════════════════ */
 .prediction-card {
-  border: 1px solid var(--border2); border-radius: 2px;
-  background: var(--bg3); overflow: hidden; margin: 0 10px;
+  border: 1px solid var(--border2); border-radius: 3px;
+  background: var(--bg3); overflow: hidden; margin: 0 12px;
 }
 .prediction-card--loading { padding: 16px; }
 .pred-loading-text { color: var(--text2); font-size: 11px; }
@@ -870,7 +870,7 @@ body {
 /* Header row: direction badge + coin label */
 .pred-header {
   display: flex; align-items: center; gap: 8px;
-  padding: 6px 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--border2);
   background: var(--bg4);
 }
@@ -904,8 +904,8 @@ body {
   background: var(--bg3);
 }
 .pred-level-row {
-  display: flex; flex-direction: column; gap: 3px;
-  padding: 7px 8px; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 10px; border-right: 1px solid var(--border);
 }
 .pred-level-row:last-child { border-right: none; }
 .pred-level-label {
@@ -919,11 +919,11 @@ body {
 
 /* Signal bars */
 .pred-signals {
-  padding: 8px 10px; display: flex; flex-direction: column;
-  gap: 6px; border-bottom: 1px solid var(--border2);
+  padding: 12px 12px; display: flex; flex-direction: column;
+  gap: 10px; border-bottom: 1px solid var(--border2);
   background: var(--bg2);
 }
-.signal-row { display: flex; flex-direction: column; gap: 3px; }
+.signal-row { display: flex; flex-direction: column; gap: 4px; }
 .signal-row-header { display: flex; align-items: center; gap: 6px; }
 .signal-name { font-family: var(--font-ui); font-size: 10px; font-weight: 500; color: var(--text2); flex: 1; }
 .signal-value { font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
@@ -940,8 +940,8 @@ body {
 
 /* Reasoning */
 .pred-reasoning {
-  padding: 8px 10px; font-size: 10px; color: var(--text3);
-  line-height: 1.6;
+  padding: 12px 12px; font-size: 10px; color: var(--text3);
+  line-height: 1.7;
 }
 
 /* ════════════════════════════════════════
@@ -958,11 +958,11 @@ body {
 }
 .tf-matrix-rows {
   display: flex; flex-direction: column; background: var(--bg2);
-  margin: 0 10px; border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
+  margin: 0 12px; border: 1px solid var(--border); border-radius: 3px; overflow: hidden;
 }
 .tf-row {
   display: flex; align-items: center; gap: 8px;
-  padding: 4px 10px; border-bottom: 1px solid var(--border);
+  padding: 7px 12px; border-bottom: 1px solid var(--border);
 }
 .tf-row:last-child { border-bottom: none; }
 .tf-label {
@@ -1066,12 +1066,12 @@ body {
 
 /* Trade card */
 .trade-card {
-  padding: 7px 12px; border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
   border-left: 2px solid transparent;
   background: var(--bg2);
   transition: background 0.1s;
-  margin: 0 10px 4px;
-  border-radius: 2px; border: 1px solid var(--border);
+  margin: 0 12px 6px;
+  border-radius: 3px; border: 1px solid var(--border);
 }
 .trade-card:hover { background: var(--bg3); }
 .trade-card--open { border-left-color: var(--accent); }
