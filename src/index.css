@@ -54,10 +54,10 @@
   --border:    #2a2e39;
   --border2:   #363c4e;
 
-  --text:      #d1d4dc;
-  --text2:     #9199a8;
-  --text3:     #6b7280;
-  --text4:     #4c5568;
+  --text:      #e2e4ec;
+  --text2:     #b0b8c8;
+  --text3:     #8892a4;
+  --text4:     #6b7585;
 
   /* Bright white — TradingView's own active-state color, zero competition with green/red */
   --accent:    #d1d4dc;
@@ -455,7 +455,7 @@ body {
 }
 .market-tooltip-desc {
   font-family: var(--font-ui); font-size: 11px; color: var(--text);
-  line-height: 1.65; margin-bottom: 12px; opacity: 0.75;
+  line-height: 1.65; margin-bottom: 12px; color: var(--text2);
   white-space: normal !important;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -805,7 +805,7 @@ body {
 .apex-bal-val   { font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: var(--text); }
 .apex-pnl-group { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
 .apex-pnl-val   { font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
-.apex-pnl-pct   { font-family: var(--font-mono); font-size: 10px; opacity: 0.75; }
+.apex-pnl-pct   { font-family: var(--font-mono); font-size: 10px; color: var(--text2); }
 .apex-portfolio-stats { display: flex; gap: 4px; flex-wrap: wrap; }
 .apex-stat-pill {
   flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px;
@@ -1216,7 +1216,7 @@ body {
 .learn-weight-cur.up   { color: var(--green); }
 .learn-weight-cur.down { color: var(--red); }
 .learn-weight-delta {
-  font-size: 8px; opacity: 0.75;
+  font-size: 8px; color: var(--text3);
 }
 .learn-accuracy {
   font-family: var(--font-mono); font-size: 10px; color: var(--text3); text-align: right;
@@ -1742,7 +1742,7 @@ body {
 .bt-sig-name { color: var(--text2); font-weight: 500; }
 .bt-sig-wt   { color: var(--text3); font-family: var(--font-mono); }
 .bt-sig-wr   { font-family: var(--font-mono); font-weight: 600; }
-.bt-sig-wr small { opacity: 0.6; font-size: 9px; }
+.bt-sig-wr small { color: var(--text3); font-size: 9px; }
 
 .bt-conf-row { grid-template-columns: 1fr 0.6fr 0.8fr 1fr; }
 
