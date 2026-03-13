@@ -379,7 +379,7 @@ body {
   transition: width 0.2s ease, border-color 0.2s ease;
 }
 [data-theme="dark"] .sidebar {
-  background: var(--bg);
+  background: var(--bg2);
   border-right-color: var(--border2);
 }
 .sidebar--collapsed {
@@ -406,8 +406,8 @@ body {
 ════════════════════════════════════════ */
 .sidebar-tabs {
   display: flex; flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg3);
   padding: 0 8px; gap: 0;
 }
 .sidebar-tab {
@@ -477,10 +477,10 @@ body {
 .panel-header {
   display: flex; align-items: center; gap: 6px;
   padding: 5px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border2);
   font-family: var(--font-ui); font-size: 9px; font-weight: 600;
   letter-spacing: 0.05em; color: var(--text3);
-  flex-shrink: 0; text-transform: uppercase; background: var(--bg);
+  flex-shrink: 0; text-transform: uppercase; background: var(--bg3);
 }
 
 .live-dot {
@@ -620,8 +620,8 @@ body {
 
 .ai-sub-tabs {
   display: flex; flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg); padding: 0 8px; gap: 0;
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg3); padding: 0 8px; gap: 0;
 }
 .ai-sub-tab {
   flex: 1; background: transparent; border: none;
@@ -693,8 +693,8 @@ body {
    PREDICTION CARD — flat TradingView style
 ════════════════════════════════════════ */
 .prediction-card {
-  border: 1px solid var(--border); border-radius: 2px;
-  background: var(--bg); overflow: hidden;
+  border: 1px solid var(--border2); border-radius: 2px;
+  background: var(--bg3); overflow: hidden;
 }
 .prediction-card--loading { padding: 16px; }
 .pred-loading-text { color: var(--text2); font-size: 11px; }
@@ -704,8 +704,8 @@ body {
 .pred-header {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg4);
 }
 .prediction-card--up   { border-left: 3px solid var(--green); }
 .prediction-card--down { border-left: 3px solid var(--red); }
@@ -726,7 +726,8 @@ body {
 /* Data grid: conf + levels in a compact table */
 .pred-hero {
   display: grid; grid-template-columns: 72px 1fr;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg3);
 }
 .pred-conf-ring {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -763,7 +764,8 @@ body {
 /* Signal bars */
 .pred-signals {
   padding: 8px 10px; display: flex; flex-direction: column;
-  gap: 6px; border-bottom: 1px solid var(--border);
+  gap: 6px; border-bottom: 1px solid var(--border2);
+  background: var(--bg2);
 }
 .signal-row { display: flex; flex-direction: column; gap: 3px; }
 .signal-row-header { display: flex; align-items: center; gap: 6px; }
@@ -793,12 +795,12 @@ body {
   border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
 }
 .tf-matrix-title {
-  padding: 5px 10px; border-bottom: 1px solid var(--border);
-  background: var(--bg2);
+  padding: 5px 10px; border-bottom: 1px solid var(--border2);
+  background: var(--bg4);
   font-family: var(--font-ui); font-size: 9px; font-weight: 600; color: var(--text3);
   letter-spacing: 0.06em; text-transform: uppercase;
 }
-.tf-matrix-rows { display: flex; flex-direction: column; background: var(--bg); }
+.tf-matrix-rows { display: flex; flex-direction: column; background: var(--bg2); }
 .tf-row {
   display: flex; align-items: center; gap: 8px;
   padding: 4px 10px; border-bottom: 1px solid var(--border);
@@ -823,14 +825,15 @@ body {
 
 /* ═══ PORTFOLIO SUMMARY — flat data rows ═══ */
 .portfolio-summary {
-  padding: 0; border-bottom: 1px solid var(--border);
+  padding: 0; border-bottom: 1px solid var(--border2);
   display: flex; flex-direction: column; flex-shrink: 0;
-  background: var(--bg);
+  background: var(--bg2);
 }
 
 .portfolio-hero {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg3);
   display: flex; flex-direction: column; gap: 3px;
 }
 .portfolio-hero-label {
@@ -896,16 +899,17 @@ body {
 ════════════════════════════════════════ */
 .trades-section { display: flex; flex-direction: column; }
 .trades-section-title {
-  padding: 4px 10px; border-bottom: 1px solid var(--border);
+  padding: 5px 12px; border-bottom: 1px solid var(--border2);
   font-family: var(--font-ui); font-size: 9px; font-weight: 600;
-  letter-spacing: 0.05em; color: var(--text3);
-  background: var(--bg); flex-shrink: 0; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text3);
+  background: var(--bg3); flex-shrink: 0; text-transform: uppercase;
 }
 
 /* Trade card */
 .trade-card {
-  padding: 6px 10px; border-bottom: 1px solid var(--border);
+  padding: 7px 12px; border-bottom: 1px solid var(--border);
   border-left: 2px solid transparent;
+  background: var(--bg2);
   transition: background 0.1s;
 }
 .trade-card:hover { background: var(--bg3); }
