@@ -1,6 +1,54 @@
 import { useEffect, useRef } from 'react';
-import { init, dispose } from 'klinecharts';
+import { init, dispose, registerOverlay } from 'klinecharts';
 import type { Chart } from 'klinecharts';
+
+// ── Register custom TP/SL line overlay (once at module level) ─────────────────
+let _tpslRegistered = false;
+function ensureTpSlOverlay() {
+  if (_tpslRegistered) return;
+  _tpslRegistered = true;
+  registerOverlay({
+    name: 'tpslLine',
+    totalStep: 2,
+    needDefaultPointFigure: false,
+    needDefaultXAxisFigure: false,
+    needDefaultYAxisFigure: false,
+    createPointFigures({ coordinates, bounding, overlay }: any) {
+      const y          = coordinates[0].y;
+      const label      = (overlay.extendData ?? '') as string;
+      const isTP       = label.startsWith('TP');
+      const lineColor  = isTP ? '#22c55e' : '#ef4444';
+      const bgColor    = isTP ? '#22c55ecc' : '#ef4444cc';
+      return [
+        // Dashed horizontal line
+        {
+          type: 'line',
+          attrs: { coordinates: [{ x: 0, y }, { x: bounding.width, y }] },
+          styles: { style: 'dashed', dashedValue: [4, 3], color: lineColor, size: 1 },
+          ignoreEvent: true,
+        },
+        // Inline label box (auto-draws background via backgroundColor)
+        {
+          type: 'text',
+          attrs: { x: bounding.width - 4, y, text: label, align: 'right', baseline: 'middle' },
+          styles: {
+            color: '#ffffff',
+            backgroundColor: bgColor,
+            size: 10,
+            weight: 'bold',
+            family: "'Inter', -apple-system, sans-serif",
+            paddingLeft: 7,
+            paddingRight: 7,
+            paddingTop: 3,
+            paddingBottom: 3,
+            borderRadius: 3,
+          },
+          ignoreEvent: true,
+        },
+      ];
+    },
+  });
+}
 import { Candle, Coin, Timeframe, Trade } from '../types';
 import { PrevDay } from '../hooks/usePrevDayOHLC';
 import { TradeMarkerData } from '../hooks/useAITrader';
@@ -108,6 +156,7 @@ export function KLineChart({
 
   // ── Mount / unmount ──────────────────────────────────────────────────
   useEffect(() => {
+    ensureTpSlOverlay();
     if (!containerRef.current) return;
     const chart = init(containerRef.current, { styles: buildStyles(theme) });
     if (!chart) return;
@@ -237,29 +286,17 @@ export function KLineChart({
     tpSlIds.current = [];
 
     openTrades.filter(t => t.status === 'OPEN' && t.coin === coin).forEach(t => {
+      const fmtPrice = (v: number) =>
+        v >= 1000 ? v.toLocaleString(undefined, { maximumFractionDigits: 0 }) : v.toFixed(2);
       const tpId = chart.createOverlay({
-        name: 'horizontalStraightLine', lock: true,
-        needDefaultPointFigure: false,
-        needDefaultXAxisFigure: false,
-        needDefaultYAxisFigure: true,
+        name: 'tpslLine', lock: true,
         points: [{ timestamp: 0, value: t.takeProfit }],
-        styles: {
-          line: { color: '#22c55e', size: 1, style: 'dashed' },
-          text: { color: '#ffffff', size: 10, weight: 'bold', backgroundColor: '#22c55e', borderColor: '#22c55e', paddingLeft: 4, paddingRight: 4, paddingTop: 2, paddingBottom: 2 },
-        },
-        extendData: `TP ${t.takeProfit >= 1000 ? t.takeProfit.toLocaleString(undefined, { maximumFractionDigits: 0 }) : t.takeProfit.toFixed(2)}`,
+        extendData: `TP  ${fmtPrice(t.takeProfit)}`,
       } as any);
       const slId = chart.createOverlay({
-        name: 'horizontalStraightLine', lock: true,
-        needDefaultPointFigure: false,
-        needDefaultXAxisFigure: false,
-        needDefaultYAxisFigure: true,
+        name: 'tpslLine', lock: true,
         points: [{ timestamp: 0, value: t.stopLoss }],
-        styles: {
-          line: { color: '#ef4444', size: 1, style: 'dashed' },
-          text: { color: '#ffffff', size: 10, weight: 'bold', backgroundColor: '#ef4444', borderColor: '#ef4444', paddingLeft: 4, paddingRight: 4, paddingTop: 2, paddingBottom: 2 },
-        },
-        extendData: `SL ${t.stopLoss >= 1000 ? t.stopLoss.toLocaleString(undefined, { maximumFractionDigits: 0 }) : t.stopLoss.toFixed(2)}`,
+        extendData: `SL  ${fmtPrice(t.stopLoss)}`,
       } as any);
       if (typeof tpId === 'string') tpSlIds.current.push(tpId);
       if (typeof slId === 'string') tpSlIds.current.push(slId);
