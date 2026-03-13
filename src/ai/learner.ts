@@ -75,7 +75,11 @@ export interface LearnedWeights {
 export function loadWeights(): LearnedWeights {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as LearnedWeights;
+    if (raw) {
+      const parsed = JSON.parse(raw) as LearnedWeights;
+      // Migrate old data that predates the history field
+      return { ...parsed, history: parsed.history ?? [] };
+    }
   } catch { /* ignore */ }
   return {
     weights:    { ...DEFAULT_WEIGHTS },

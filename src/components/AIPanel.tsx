@@ -438,9 +438,9 @@ export function AIPanel({ portfolio, closedTrades, predictions, tfMatrix, active
           )}
 
           {/* Learning history */}
-          {learnedWeights.history.length > 0 && (
+          {(learnedWeights.history ?? []).length > 0 && (
             <div className="learn-history">
-              {learnedWeights.history.map((event, i) => (
+              {(learnedWeights.history ?? []).map((event, i) => (
                 <div key={i} className="learn-event">
                   <div className="learn-event-header">
                     <span className="learn-event-title">Model v{event.version}</span>
