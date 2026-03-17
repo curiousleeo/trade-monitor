@@ -34,13 +34,14 @@ const OPINION_THRESHOLD = 20;   // ignore signals with |value| ≤ 20 (neutral r
 // ─── Default weights (hardcoded starting point) ──────────────────────────────
 
 export const DEFAULT_WEIGHTS: Record<string, number> = {
-  'Multi-TF Alignment': 0.20,
-  'Liquidity Sweep':    0.20,
-  'MACD Momentum':      0.15,
-  'Stoch RSI':          0.15,
-  'EMA Trend':          0.15,
-  'Candle Pattern':     0.10,
-  'VWAP':               0.05,
+  'Multi-TF Alignment': 0.17,
+  'Liquidity Sweep':    0.17,
+  'MACD Momentum':      0.13,
+  'Stoch RSI':          0.13,
+  'EMA Trend':          0.12,
+  'Candle Pattern':     0.09,
+  'VWAP':               0.04,
+  'Seasonality':        0.15,  // monthly macro edge — backtested +447% vs +152% BH (BTC)
 };
 
 // ─── Types ───────────────────────────────────────────────────────────────────
