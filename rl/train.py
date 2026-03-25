@@ -2,48 +2,39 @@
 train.py
 ────────
 Train a DQN agent on historical candle data.
+Uses the pure-numpy DQN in dqn.py (no PyTorch required).
 
 Usage:
-    python train.py                              # BTC 15m, 500k steps
+    python train.py                              # BTC 15m, 200k steps
     python train.py --coin ETH --tf 1h
-    python train.py --coin BTC --steps 1000000
+    python train.py --coin BTC --steps 500000
 
 Output:
-    models/BTC_15m_dqn/   — saved model + replay buffer
-    logs/BTC_15m/         — tensorboard logs (run: tensorboard --logdir logs/)
+    models/BTC_15m/best_model.pkl   — best model by eval reward
+    models/BTC_15m/final.pkl        — model at end of training
 """
 
 import argparse
 from pathlib import Path
 
 import pandas as pd
-from stable_baselines3 import DQN
-from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
-from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import DummyVecEnv
 from rich.console import Console
 
 from features import add_features
 from environment import TradingEnv
+from dqn import DQNAgent
 
 console = Console()
 
-DATA_DIR   = Path(__file__).parent / "data"
-MODEL_DIR  = Path(__file__).parent / "models"
-LOG_DIR    = Path(__file__).parent / "logs"
-
-
-def make_env(df: pd.DataFrame, episode_len: int):
-    def _init():
-        return Monitor(TradingEnv(df, episode_len=episode_len))
-    return _init
+DATA_DIR  = Path(__file__).parent / "data"
+MODEL_DIR = Path(__file__).parent / "models"
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--coin",        default="BTC")
     parser.add_argument("--tf",          default="15m")
-    parser.add_argument("--steps",       type=int, default=500_000)
+    parser.add_argument("--steps",       type=int, default=200_000)
     parser.add_argument("--episode-len", type=int, default=2_000)
     args = parser.parse_args()
 
@@ -67,63 +58,48 @@ def main():
     console.print(f"Train: {len(df_train):,}  |  Eval: {len(df_eval):,}")
 
     # ── Environments ─────────────────────────────────────────────────────────
-    train_env = DummyVecEnv([make_env(df_train, args.episode_len)])
-    eval_env  = DummyVecEnv([make_env(df_eval,  args.episode_len)])
+    train_env = TradingEnv(df_train, episode_len=args.episode_len)
+    eval_env  = TradingEnv(df_eval,  episode_len=args.episode_len)
 
-    # ── Model ─────────────────────────────────────────────────────────────────
+    obs_dim   = train_env.observation_space.shape[0]
+    n_actions = train_env.action_space.n
+
+    # ── Agent ─────────────────────────────────────────────────────────────────
     model_path = MODEL_DIR / tag
     model_path.mkdir(parents=True, exist_ok=True)
-    log_path   = LOG_DIR / tag
-    log_path.mkdir(parents=True, exist_ok=True)
 
-    model = DQN(
-        policy             = "MlpPolicy",
-        env                = train_env,
-        learning_rate      = 1e-4,
-        buffer_size        = 100_000,
-        learning_starts    = 5_000,
-        batch_size         = 256,
-        gamma              = 0.99,
-        train_freq         = 4,
-        gradient_steps     = 1,
-        target_update_interval = 1_000,
-        exploration_fraction   = 0.20,   # explore for first 20% of steps
-        exploration_final_eps  = 0.02,
-        optimize_memory_usage  = False,
-        verbose            = 1,
-        tensorboard_log    = str(log_path),
-        policy_kwargs      = dict(net_arch=[256, 256]),   # 2-layer MLP
+    agent = DQNAgent(
+        obs_dim         = obs_dim,
+        n_actions       = n_actions,
+        hidden          = [256, 256],
+        lr              = 1e-4,
+        gamma           = 0.99,
+        buffer_size     = 100_000,
+        batch_size      = 256,
+        learning_starts = 5_000,
+        train_freq      = 4,
+        target_update   = 1_000,
+        eps_start       = 1.0,
+        eps_end         = 0.02,
+        eps_decay_steps = int(args.steps * 0.20),
     )
-
-    callbacks = [
-        EvalCallback(
-            eval_env,
-            best_model_save_path = str(model_path),
-            log_path             = str(log_path),
-            eval_freq            = 10_000,
-            n_eval_episodes      = 5,
-            deterministic        = True,
-            verbose              = 1,
-        ),
-        CheckpointCallback(
-            save_freq  = 50_000,
-            save_path  = str(model_path / "checkpoints"),
-            name_prefix= "dqn",
-        ),
-    ]
 
     console.print(f"[bold]Training DQN for {args.steps:,} steps[/bold]")
-    console.print(f"Model will be saved to [cyan]{model_path}[/cyan]")
-    console.print("To monitor: [yellow]tensorboard --logdir logs/[/yellow]\n")
+    console.print(f"obs_dim={obs_dim}  n_actions={n_actions}  hidden=[256,256]")
+    console.print(f"Model will be saved to [cyan]{model_path}[/cyan]\n")
 
-    model.learn(
+    agent.learn(
+        env             = train_env,
         total_timesteps = args.steps,
-        callback        = callbacks,
-        progress_bar    = True,
+        eval_env        = eval_env,
+        eval_freq       = 10_000,
+        n_eval_episodes = 5,
+        save_path       = str(model_path),
+        verbose         = 1,
     )
 
-    model.save(str(model_path / "final"))
-    console.print(f"\n[bold green]✓ Training complete. Model saved to {model_path}/final[/bold green]")
+    agent.save(str(model_path / "final.pkl"))
+    console.print(f"\n[bold green]✓ Training complete. Saved to {model_path}/final.pkl[/bold green]")
     console.print("Next step: [cyan]python evaluate.py[/cyan]")
 
 

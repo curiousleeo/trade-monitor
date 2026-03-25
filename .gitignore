@@ -6,3 +6,11 @@ dist/
 .github/
 .vercel
 *.tmp
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+rl/data/
+rl/models/
+rl/__pycache__/

@@ -7,7 +7,7 @@ a full performance report: Sharpe, max drawdown, win rate, etc.
 Usage:
     python evaluate.py                        # BTC 15m best_model
     python evaluate.py --coin ETH --tf 1h
-    python evaluate.py --model models/BTC_15m/final
+    python evaluate.py --model models/BTC_15m/final.pkl
 """
 
 import argparse
@@ -16,12 +16,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from stable_baselines3 import DQN
 from rich.console import Console
 from rich.table import Table
 
 from features import add_features
 from environment import TradingEnv, INITIAL_BALANCE
+from dqn import DQNAgent
 
 console = Console()
 
@@ -29,7 +29,7 @@ DATA_DIR  = Path(__file__).parent / "data"
 MODEL_DIR = Path(__file__).parent / "models"
 
 
-def run_episode(env: TradingEnv, model) -> dict:
+def run_episode(env: TradingEnv, agent: DQNAgent) -> dict:
     """Run one full deterministic episode and collect stats."""
     obs, _  = env.reset()
     done     = False
@@ -38,7 +38,7 @@ def run_episode(env: TradingEnv, model) -> dict:
     in_trade_since = None
 
     while not done:
-        action, _ = model.predict(obs, deterministic=True)
+        action = agent.predict(obs, deterministic=True)
         obs, reward, terminated, truncated, info = env.step(int(action))
         done = terminated or truncated
         balances.append(info["balance"])
@@ -58,7 +58,7 @@ def run_episode(env: TradingEnv, model) -> dict:
     return {"balances": balances, "trades": trades}
 
 
-def sharpe(balances: list[float], risk_free: float = 0.0) -> float:
+def sharpe(balances: list, risk_free: float = 0.0) -> float:
     arr     = np.array(balances)
     returns = np.diff(arr) / arr[:-1]
     if returns.std() == 0:
@@ -67,7 +67,7 @@ def sharpe(balances: list[float], risk_free: float = 0.0) -> float:
     # 252 trading days × 96 × 15min candles/day ≈ annualised
 
 
-def max_drawdown(balances: list[float]) -> float:
+def max_drawdown(balances: list) -> float:
     arr     = np.array(balances)
     peak    = np.maximum.accumulate(arr)
     dd      = (arr - peak) / peak
@@ -83,10 +83,10 @@ def main():
 
     tag        = f"{args.coin}_{args.tf}"
     data_path  = DATA_DIR / f"{tag}.parquet"
-    model_path = args.model or str(MODEL_DIR / tag / "best_model")
+    model_path = args.model or str(MODEL_DIR / tag / "best_model.pkl")
 
     console.print(f"[bold cyan]Loading model: {model_path}[/bold cyan]")
-    model = DQN.load(model_path)
+    agent = DQNAgent.load(model_path)
 
     console.print(f"[bold cyan]Loading data: {data_path}[/bold cyan]")
     df_raw = pd.read_parquet(data_path)
@@ -98,7 +98,7 @@ def main():
     console.print(f"Test set: {len(df_test):,} candles")
 
     env    = TradingEnv(df_test, episode_len=len(df_test))
-    result = run_episode(env, model)
+    result = run_episode(env, agent)
 
     bals   = result["balances"]
     trades = result["trades"]
@@ -106,8 +106,8 @@ def main():
     final  = bals[-1]
 
     # ── Buy-and-hold baseline ─────────────────────────────────────────────────
-    bh_start = float(df_test.iloc[0]["close"])
-    bh_end   = float(df_test.iloc[-1]["close"])
+    bh_start  = float(df_test.iloc[0]["close"])
+    bh_end    = float(df_test.iloc[-1]["close"])
     bh_return = (bh_end - bh_start) / bh_start * 100
 
     # ── Print report ─────────────────────────────────────────────────────────
